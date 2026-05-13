@@ -8,7 +8,7 @@ import type { MouseEvent } from 'react'
 
 export default function FavoritesDrawer() {
   const { drawerOpen, closeDrawer, savedConnections, refreshSavedConnections } = useApp()
-  const { selectStop, showRoute, setActiveDialog, setConnectionOrigin, setConnectionDest } = useMapCtx()
+  const { selectStop, showRoute, setActiveDialog, startConnectionCreation } = useMapCtx()
   const { stops, lines, removeStop, removeLine } = useFavorites()
 
   const handleDeleteConnection = async (e: MouseEvent, id: string) => {
@@ -107,9 +107,9 @@ export default function FavoritesDrawer() {
         </div>
         {lines.length >= 2 && (
           <div className="px-4 py-3 border-t border-[#e5e7eb] flex-shrink-0">
-            <button onClick={() => { closeDrawer(); setActiveDialog('connection') }}
+            <button onClick={() => { closeDrawer(); startConnectionCreation() }}
               className="w-full px-4 py-2.5 bg-[#1565c0] text-white rounded-lg text-sm font-medium hover:bg-[#0d47a1] transition-colors">
-              Planificar viaje con conexiones
+              + Nueva conexión
             </button>
           </div>
         )}

@@ -52,13 +52,27 @@ function MapEvents() {
 }
 
 export default function MapView() {
-  const { selectedStop, selectStop, stops, vehicles, routeCoords, routeStopIds, etaMode, activeDialog, connectionOrigin, setConnectionOrigin, setConnectionDest } = useMapCtx()
+  const { selectedStop, selectStop, stops, vehicles, routeCoords, routeStopIds, etaMode, activeDialog, connectionOrigin, setConnectionOrigin, setConnectionDest, connectionCreationStep, setConnectionCreationStep, updateConnectionCreationData } = useMapCtx()
 
   const visibleStops = routeStopIds
     ? stops.filter(s => routeStopIds.has(s.id))
     : stops
 
+  const isSelectingForConnection = activeDialog === 'connection' && connectionCreationStep !== 'idle'
+
   const handleMarkerClick = (stop: typeof stops[0]) => {
+    if (isSelectingForConnection) {
+      if (connectionCreationStep === 'selectOrigin') {
+        updateConnectionCreationData({ originStop: stop })
+        setConnectionCreationStep('selectLineA')
+      } else if (connectionCreationStep === 'selectCombination') {
+        updateConnectionCreationData({ combinationStop: stop })
+        setConnectionCreationStep('selectLineB')
+      } else if (connectionCreationStep === 'selectDest') {
+        updateConnectionCreationData({ destStop: stop })
+      }
+      return
+    }
     if (activeDialog === 'connection' && etaMode) {
       if (!connectionOrigin) {
         setConnectionOrigin(stop)

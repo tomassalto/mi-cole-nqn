@@ -24,6 +24,18 @@ function decodePolyline(encoded: string): [number, number][] {
   return coords
 }
 
+type ConnectionCreationStep = 'idle' | 'selectOrigin' | 'selectLineA' | 'selectCombination' | 'selectLineB' | 'selectDest' | 'fillName'
+
+interface ConnectionCreationData {
+  originStop: Stop | null
+  lineAServiceId: number | null
+  lineARouteCode: string
+  combinationStop: Stop | null
+  lineBServiceId: number | null
+  lineBRouteCode: string
+  destStop: Stop | null
+}
+
 interface MapContextValue {
   selectedStop: Stop | null
   stops: Stop[]
@@ -34,6 +46,8 @@ interface MapContextValue {
   activeDialog: 'none' | 'eta' | 'connection'
   connectionOrigin: Stop | null
   connectionDest: Stop | null
+  connectionCreationStep: ConnectionCreationStep
+  connectionCreationData: ConnectionCreationData
   selectStop: (stop: Stop | null) => void
   showRoute: (serviceId: number | string) => Promise<void>
   clearRoute: () => void
@@ -42,6 +56,10 @@ interface MapContextValue {
   setActiveDialog: (d: 'none' | 'eta' | 'connection') => void
   setConnectionOrigin: (s: Stop | null) => void
   setConnectionDest: (s: Stop | null) => void
+  startConnectionCreation: () => void
+  setConnectionCreationStep: (step: ConnectionCreationStep) => void
+  updateConnectionCreationData: (data: Partial<ConnectionCreationData>) => void
+  cancelConnectionCreation: () => void
 }
 
 const MapContext = createContext<MapContextValue | null>(null)
@@ -56,6 +74,16 @@ export function MapProvider({ children }: { children: ReactNode }) {
   const [activeDialog, setActiveDialog] = useState<'none' | 'eta' | 'connection'>('none')
   const [connectionOrigin, setConnectionOrigin] = useState<Stop | null>(null)
   const [connectionDest, setConnectionDest] = useState<Stop | null>(null)
+  const [connectionCreationStep, setConnectionCreationStep] = useState<ConnectionCreationStep>('idle')
+  const [connectionCreationData, setConnectionCreationData] = useState<ConnectionCreationData>({
+    originStop: null,
+    lineAServiceId: null,
+    lineARouteCode: '',
+    combinationStop: null,
+    lineBServiceId: null,
+    lineBRouteCode: '',
+    destStop: null,
+  })
 
   useEffect(() => {
     getStopsAll()
@@ -83,6 +111,37 @@ export function MapProvider({ children }: { children: ReactNode }) {
   const updateVehicles = useCallback((v: Vehicle[]) => setVehicles(v), [])
   const setEtaMode = useCallback((active: boolean) => setEtaModeState(active), [])
 
+  const startConnectionCreation = useCallback(() => {
+    setConnectionCreationStep('selectOrigin')
+    setConnectionCreationData({
+      originStop: null,
+      lineAServiceId: null,
+      lineARouteCode: '',
+      combinationStop: null,
+      lineBServiceId: null,
+      lineBRouteCode: '',
+      destStop: null,
+    })
+    setActiveDialog('connection')
+  }, [setActiveDialog])
+
+  const updateConnectionCreationData = useCallback((data: Partial<ConnectionCreationData>) => {
+    setConnectionCreationData(prev => ({ ...prev, ...data }))
+  }, [])
+
+  const cancelConnectionCreation = useCallback(() => {
+    setConnectionCreationStep('idle')
+    setConnectionCreationData({
+      originStop: null,
+      lineAServiceId: null,
+      lineARouteCode: '',
+      combinationStop: null,
+      lineBServiceId: null,
+      lineBRouteCode: '',
+      destStop: null,
+    })
+  }, [])
+
   return (
     <MapContext.Provider value={{
       selectedStop,
@@ -94,6 +153,8 @@ export function MapProvider({ children }: { children: ReactNode }) {
       activeDialog,
       connectionOrigin,
       connectionDest,
+      connectionCreationStep,
+      connectionCreationData,
       showRoute,
       clearRoute,
       selectStop,
@@ -102,6 +163,10 @@ export function MapProvider({ children }: { children: ReactNode }) {
       setActiveDialog,
       setConnectionOrigin,
       setConnectionDest,
+      startConnectionCreation,
+      setConnectionCreationStep,
+      updateConnectionCreationData,
+      cancelConnectionCreation,
     }}>
       {children}
     </MapContext.Provider>

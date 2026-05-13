@@ -1,6 +1,30 @@
 import type { VisionbloArrivalsResponse } from '@/types/visionblo'
 import type { Arrival, ArrivalStatus } from '@/types/api'
 
+export interface StopLine {
+  serviceId: number
+  routeCode: string
+  routeName: string
+}
+
+export async function getAvailableLines(stopId: number): Promise<StopLine[]> {
+  const data = await getArrivals(stopId)
+  const normalized = normalizeArrivals(data)
+  const seen = new Set<number>()
+  const lines: StopLine[] = []
+  for (const a of normalized) {
+    if (!seen.has(Number(a.serviceId))) {
+      seen.add(Number(a.serviceId))
+      lines.push({
+        serviceId: Number(a.serviceId),
+        routeCode: a.routeCode,
+        routeName: a.routeName,
+      })
+    }
+  }
+  return lines
+}
+
 export async function getArrivals(stopId: number): Promise<VisionbloArrivalsResponse> {
   const res = await fetch(`/api/arrivals/${encodeURIComponent(stopId)}`, {
     method: 'POST',
