@@ -1,0 +1,20 @@
+{
+  "name": "micole",
+  "version": "1.0.0",
+  "private": true,
+  "workspaces": [
+    "frontend",
+    "server"
+  ],
+  "scripts": {
+    "dev": "concurrently -k -n server,frontend -c cyan,magenta \"npm run dev:server\" \"npm run dev:frontend\"",
+    "dev:server": "cd server && npm run build && node dist/index.js",
+    "dev:frontend": "wait-on http://localhost:3001/api/health && cd frontend && npm run dev",
+    "build": "npm run build -w frontend",
+    "start": "npm run start -w server"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2",
+    "wait-on": "^9.0.10"
+  }
+}

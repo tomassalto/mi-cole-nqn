@@ -1,0 +1,5 @@
+node_modules/
+.env
+micole.db
+*.db-shm
+*.db-wal
