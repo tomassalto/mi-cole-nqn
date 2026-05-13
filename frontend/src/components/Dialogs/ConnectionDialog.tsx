@@ -2,23 +2,33 @@ import { useState, useEffect } from 'react'
 import { useMap as useMapCtx } from '@/contexts/MapContext'
 import { useFavorites } from '@/contexts/FavoritesContext'
 import { useToast } from '@/contexts/ToastContext'
+import { useApp } from '@/contexts/AppContext'
 import Modal from '@/components/ui/Modal'
 import { calculateConnections } from '@/services/connections'
+import { saveConnection } from '@/services/savedConnections'
 import type { Connection } from '@/types/api'
 
-export default function ConnectionDialog() {
-  const { activeDialog, setActiveDialog, connectionOrigin, connectionDest } = useMapCtx()
+interface Props {
+  savedConnections?: Array<{ id: string; name: string; origin_stop_id: number; dest_stop_id: number; line_a_service_id: number; line_b_service_id: number; origin_stop_name: string | null; dest_stop_name: string | null; line_a_route_code: string | null; line_b_route_code: string | null }>
+  onLoadConnection?: (originStopId: number, destStopId: number, lineAId: number, lineBId: number) => void
+}
+
+export default function ConnectionDialog({ savedConnections = [], onLoadConnection }: Props) {
+  const { activeDialog, setActiveDialog, connectionOrigin, connectionDest, setConnectionOrigin, setConnectionDest } = useMapCtx()
   const { lines } = useFavorites()
   const { show } = useToast()
+  const { refreshSavedConnections } = useApp()
   const [lineAId, setLineAId] = useState<number | null>(null)
   const [lineBId, setLineBId] = useState<number | null>(null)
   const [connections, setConnections] = useState<Connection[]>([])
   const [loading, setLoading] = useState(false)
+  const [saveName, setSaveName] = useState('')
+  const [saving, setSaving] = useState(false)
 
   const open = activeDialog === 'connection'
 
   useEffect(() => {
-    if (!open) { setLineAId(null); setLineBId(null); setConnections([]); setLoading(false) }
+    if (!open) { setLineAId(null); setLineBId(null); setConnections([]); setLoading(false); setSaveName('') }
   }, [open])
 
   useEffect(() => {
@@ -45,6 +55,45 @@ export default function ConnectionDialog() {
       setLoading(false)
     }
   }
+
+  const handleSave = async () => {
+    if (!saveName.trim() || !connectionOrigin || !connectionDest || !lineAId || !lineBId) return
+    setSaving(true)
+    try {
+      const lineA = lines.find(l => Number(l.service_id) === lineAId)
+      const lineB = lines.find(l => Number(l.service_id) === lineBId)
+      await saveConnection(
+        saveName.trim(),
+        Number(connectionOrigin.id),
+        connectionOrigin.name,
+        Number(connectionDest.id),
+        connectionDest.name,
+        lineAId,
+        lineA?.route_code ?? '',
+        lineBId,
+        lineB?.route_code ?? ''
+      )
+      await refreshSavedConnections()
+      setSaveName('')
+      show('Conexión guardada')
+    } catch {
+      show('Error guardando conexión')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const handleLoadConnection = (conn: typeof savedConnections[0]) => {
+    setLineAId(conn.line_a_service_id)
+    setLineBId(conn.line_b_service_id)
+    const origin = { id: conn.origin_stop_id, name: conn.origin_stop_name ?? '', lat: 0, lon: 0 }
+    const dest = { id: conn.dest_stop_id, name: conn.dest_stop_name ?? '', lat: 0, lon: 0 }
+    setConnectionOrigin(origin)
+    setConnectionDest(dest)
+    onLoadConnection?.(conn.origin_stop_id, conn.dest_stop_id, conn.line_a_service_id, conn.line_b_service_id)
+  }
+
+  const canSave = saveName.trim() && connectionOrigin && connectionDest && lineAId && lineBId
 
   const lineAName = lines.find(l => Number(l.service_id) === lineAId)?.route_code ?? ''
   const lineBName = lines.find(l => Number(l.service_id) === lineBId)?.route_code ?? ''
@@ -102,7 +151,44 @@ export default function ConnectionDialog() {
         {!loading && lineAId && lineBId && connectionOrigin && connectionDest && connections.length === 0 && (
           <div className="text-center py-4 text-[#6b7280] text-sm">No hay combinaciones disponibles.</div>
         )}
-        <button onClick={() => setActiveDialog('none')} className="py-2 text-[#6b7280] text-sm text-center hover:bg-[#f5f7fa] rounded-lg transition-colors mt-auto">Cancelar</button>
+        {connectionOrigin && connectionDest && lineAId && lineBId && (
+          <div className="border-t border-[#e5e7eb] pt-3 mt-2">
+            <div className="flex gap-2">
+              <input
+                type="text"
+                value={saveName}
+                onChange={e => setSaveName(e.target.value)}
+                placeholder="Nombre de la conexión..."
+                className="flex-1 px-3 py-2 border border-[#e5e7eb] rounded-lg text-sm"
+                onKeyDown={e => e.key === 'Enter' && canSave && !saving && handleSave()}
+              />
+              <button
+                onClick={handleSave}
+                disabled={!canSave || saving}
+                className="px-3 py-2 bg-[#1565c0] text-white rounded-lg text-sm disabled:opacity-50"
+              >
+                {saving ? '...' : 'Guardar'}
+              </button>
+            </div>
+          </div>
+        )}
+        {savedConnections.length > 0 && (
+          <div className="border-t border-[#e5e7eb] pt-3 mt-2">
+            <p className="text-xs font-medium text-[#6b7280] mb-2">Conexiones guardadas:</p>
+            <div className="flex flex-col gap-1 max-h-32 overflow-y-auto">
+              {savedConnections.map(c => (
+                <button
+                  key={c.id}
+                  onClick={() => handleLoadConnection(c)}
+                  className="text-left px-2 py-1.5 text-sm rounded hover:bg-[#f5f7fa] text-[#1565c0]"
+                >
+                  {c.name} ({c.line_a_route_code} → {c.line_b_route_code})
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+        <button onClick={() => setActiveDialog('none')} className="py-2 text-[#6b7280] text-sm text-center hover:bg-[#f5f7fa] rounded-lg transition-colors mt-auto">Cerrar</button>
       </div>
     </Modal>
   )

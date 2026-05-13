@@ -17,6 +17,23 @@ db.exec(`
   )
 `)
 
+db.exec(`
+  CREATE TABLE IF NOT EXISTS saved_connections (
+    id              TEXT PRIMARY KEY,
+    name            TEXT NOT NULL,
+    origin_stop_id  INTEGER NOT NULL,
+    origin_stop_name TEXT,
+    dest_stop_id    INTEGER NOT NULL,
+    dest_stop_name  TEXT,
+    line_a_service_id INTEGER NOT NULL,
+    line_a_route_code TEXT,
+    line_b_service_id INTEGER NOT NULL,
+    line_b_route_code TEXT,
+    notifications   INTEGER DEFAULT 0,
+    created_at      TEXT DEFAULT (datetime('now'))
+  )
+`)
+
 const cols = db.prepare("PRAGMA table_info(favorites)").all() as Array<{ name: string }>
 const colNames = cols.map(c => c.name)
 

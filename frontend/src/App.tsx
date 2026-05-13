@@ -5,8 +5,11 @@ import ArrivalsPanel from '@/components/Panel/ArrivalsPanel'
 import FavoritesDrawer from '@/components/Drawer/FavoritesDrawer'
 import EtaDialog from '@/components/Dialogs/EtaDialog'
 import ConnectionDialog from '@/components/Dialogs/ConnectionDialog'
+import { useApp } from '@/contexts/AppContext'
 
 export default function App() {
+  const { savedConnections } = useApp()
+
   return (
     <div className="h-dvh flex flex-col">
       <TopBar />
@@ -15,7 +18,7 @@ export default function App() {
       <FavoritesDrawer />
       <ArrivalsPanel />
       <EtaDialog />
-      <ConnectionDialog />
+      <ConnectionDialog savedConnections={savedConnections} />
     </div>
   )
 }

@@ -9,6 +9,7 @@ import stopsRouter from './routes/stops'
 import arrivalsRouter from './routes/arrivals'
 import routesRouter from './routes/routes'
 import favoritesRouter from './routes/favorites'
+import savedConnectionsRouter from './routes/savedConnections'
 import etaRouter from './routes/eta'
 import vehiclesRouter from './routes/vehicles'
 import { subscribeVehicles } from './lib/visionblo'
@@ -25,6 +26,7 @@ app.use('/api/stops', stopsRouter)
 app.use('/api/arrivals', arrivalsRouter)
 app.use('/api/routes', routesRouter)
 app.use('/api/favorites', favoritesRouter)
+app.use('/api/saved-connections', savedConnectionsRouter)
 app.use('/api/eta', etaRouter)
 app.use('/api/vehicles', vehiclesRouter)
 

@@ -1,14 +1,30 @@
 import { useApp } from '@/contexts/AppContext'
 import { useMap as useMapCtx } from '@/contexts/MapContext'
 import { useFavorites } from '@/contexts/FavoritesContext'
+import { deleteSavedConnection } from '@/services/savedConnections'
 import Badge from '@/components/ui/Badge'
 import IconButton from '@/components/ui/IconButton'
 import type { MouseEvent } from 'react'
 
 export default function FavoritesDrawer() {
-  const { drawerOpen, closeDrawer } = useApp()
-  const { selectStop, showRoute, setActiveDialog } = useMapCtx()
+  const { drawerOpen, closeDrawer, savedConnections, refreshSavedConnections } = useApp()
+  const { selectStop, showRoute, setActiveDialog, setConnectionOrigin, setConnectionDest } = useMapCtx()
   const { stops, lines, removeStop, removeLine } = useFavorites()
+
+  const handleDeleteConnection = async (e: MouseEvent, id: string) => {
+    e.stopPropagation()
+    await deleteSavedConnection(id)
+    await refreshSavedConnections()
+  }
+
+  const handleOpenConnection = (conn: typeof savedConnections[0]) => {
+    const origin = { id: conn.origin_stop_id, name: conn.origin_stop_name ?? '', lat: 0, lon: 0 }
+    const dest = { id: conn.dest_stop_id, name: conn.dest_stop_name ?? '', lat: 0, lon: 0 }
+    setConnectionOrigin(origin)
+    setConnectionDest(dest)
+    setActiveDialog('connection')
+    closeDrawer()
+  }
 
   const handleSelectStop = (fav: typeof stops[0]) => {
     if (fav.lat != null && fav.lon != null) {
@@ -67,8 +83,26 @@ export default function FavoritesDrawer() {
               ))}
             </>
           )}
-          {stops.length === 0 && lines.length === 0 && (
-            <p className="text-[#6b7280] text-sm text-center px-4 py-6">Guardá paradas o líneas con el botón ☆</p>
+          {stops.length === 0 && lines.length === 0 && savedConnections.length === 0 && (
+            <p className="text-[#6b7280] text-sm text-center px-4 py-6">Guardá paradas, líneas o conexiones</p>
+          )}
+          {savedConnections.length > 0 && (
+            <>
+              <div className="px-4 py-2 text-xs font-semibold text-[#6b7280] uppercase tracking-wide">Mis conexiones</div>
+              {savedConnections.map(conn => (
+                <div key={conn.id} className="flex items-center gap-2.5 px-4 py-3 cursor-pointer hover:bg-[#f5f7fa] border-b border-[#e5e7eb]"
+                  onClick={() => handleOpenConnection(conn)}>
+                  <span className="text-amber-400 text-lg">⟳</span>
+                  <div className="flex items-center gap-1.5 flex-1 min-w-0">
+                    <span className="text-[0.95rem] truncate">{conn.name}</span>
+                    <span className="text-xs text-[#6b7280]">{conn.line_a_route_code} → {conn.line_b_route_code}</span>
+                  </div>
+                  <IconButton icon={<span className="text-sm opacity-60">✕</span>}
+                    onClick={(e: MouseEvent) => handleDeleteConnection(e, conn.id)}
+                    label="Eliminar" />
+                </div>
+              ))}
+            </>
           )}
         </div>
         {lines.length >= 2 && (

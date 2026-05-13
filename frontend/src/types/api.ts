@@ -73,3 +73,18 @@ export interface Connection {
   totalMins: number
   immediate: boolean
 }
+
+export interface SavedConnection {
+  id: string
+  name: string
+  origin_stop_id: number
+  origin_stop_name: string | null
+  dest_stop_id: number
+  dest_stop_name: string | null
+  line_a_service_id: number
+  line_a_route_code: string | null
+  line_b_service_id: number
+  line_b_route_code: string | null
+  notifications: number
+  created_at: string
+}
