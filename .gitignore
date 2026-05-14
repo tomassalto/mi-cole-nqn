@@ -1,5 +1,33 @@
+# Dependencies
 node_modules/
+
+# Build output
+frontend/dist/
+server/dist/
+
+# Environment
 .env
-micole.db
+.env.local
+
+# Database & binary data
+*.db
 *.db-shm
 *.db-wal
+stops.bin
+
+# IDE / tooling
+.claude/
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+nul
+
+# Logs
+*.log
+npm-debug.log*
+
+# Claude / AI tooling docs
+AGENTS.md
