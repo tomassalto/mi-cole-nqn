@@ -4,10 +4,19 @@ import {
   useState,
   useEffect,
   useCallback,
+  useRef,
   type ReactNode
 } from 'react'
 import type { Stop, Vehicle, RouteShape } from '@/types/api'
 import { getStopsAll, getRouteShape } from '@/services/stops'
+
+function computeBearing(lat1: number, lon1: number, lat2: number, lon2: number): number {
+  const toRad = (d: number) => d * Math.PI / 180
+  const φ1 = toRad(lat1), φ2 = toRad(lat2), Δλ = toRad(lon2 - lon1)
+  const y = Math.sin(Δλ) * Math.cos(φ2)
+  const x = Math.cos(φ1) * Math.sin(φ2) - Math.sin(φ1) * Math.cos(φ2) * Math.cos(Δλ)
+  return (Math.atan2(y, x) * 180 / Math.PI + 360) % 360
+}
 
 function decodePolyline(encoded: string): [number, number][] {
   const coords: [number, number][] = []
@@ -117,6 +126,7 @@ const emptyShortcutData = (): ShortcutCreationData => ({
 export function MapProvider({ children }: { children: ReactNode }) {
   const [selectedStop, setSelectedStop] = useState<Stop | null>(null)
   const [stops, setStops] = useState<Stop[]>([])
+  const stopsRef = useRef<Stop[]>([])
   const [vehicles, setVehicles] = useState<Vehicle[]>([])
   const [routeCoords, setRouteCoords] = useState<[number, number][] | null>(null)
   const [routeStopIds, setRouteStopIds] = useState<Set<number> | null>(null)
@@ -133,7 +143,7 @@ export function MapProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     getStopsAll()
-      .then(s => { console.log('[MapContext] stops loaded:', s.length); setStops(s) })
+      .then(s => { console.log('[MapContext] stops loaded:', s.length); stopsRef.current = s; setStops(s) })
       .catch(err => { console.error('[MapContext] stops error:', err); setStops([]) })
   }, [])
 
@@ -143,10 +153,23 @@ export function MapProvider({ children }: { children: ReactNode }) {
       if (shape.encoded) setRouteCoords(decodePolyline(shape.encoded))
       if (shape.stops?.length) {
         setRouteStopIds(new Set(shape.stops))
+
+        // Usar headings de la API si los hay, si no calcular desde coordenadas
         if (shape.headings?.length === shape.stops.length) {
           const hMap = new Map<number, number>()
           shape.stops.forEach((stopId, i) => hMap.set(stopId, shape.headings[i]))
           setRouteHeadings(hMap)
+        } else {
+          const stopMap = new Map(stopsRef.current.map(s => [s.id, s]))
+          const hMap = new Map<number, number>()
+          for (let i = 0; i < shape.stops.length; i++) {
+            const curr = stopMap.get(shape.stops[i])
+            const next = shape.stops.slice(i + 1).map(id => stopMap.get(id)).find(s => s != null)
+            if (curr && next) {
+              hMap.set(shape.stops[i], computeBearing(curr.lat, curr.lon, next.lat, next.lon))
+            }
+          }
+          if (hMap.size > 0) setRouteHeadings(hMap)
         }
       }
       setRouteColor(shape.color ?? null)
