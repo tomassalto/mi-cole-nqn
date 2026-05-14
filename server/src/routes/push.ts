@@ -1,6 +1,6 @@
 import { Router } from 'express'
 import webpush from 'web-push'
-import db from '../db'
+import { db } from '../db'
 
 const router = Router()
 
@@ -21,7 +21,7 @@ router.get('/vapid-public-key', (_req, res) => {
   res.json({ publicKey: VAPID_PUBLIC_KEY })
 })
 
-router.post('/subscribe', (req, res) => {
+router.post('/subscribe', async (req, res) => {
   const { shortcutId, endpoint, p256dh, auth, minutesThreshold } = req.body as {
     shortcutId: string
     endpoint: string
@@ -35,29 +35,35 @@ router.post('/subscribe', (req, res) => {
   }
 
   // Verify shortcut exists
-  const shortcut = db.prepare('SELECT id FROM saved_shortcuts WHERE id = ?').get(shortcutId)
-  if (!shortcut) {
+  const result = await db.execute({ sql: 'SELECT id FROM saved_shortcuts WHERE id = ?', args: [shortcutId] })
+  if (result.rows.length === 0) {
     return res.status(404).json({ error: 'Shortcut not found' })
   }
 
-  db.prepare(`
-    INSERT INTO push_subscriptions (shortcut_id, endpoint, p256dh, auth, minutes_threshold)
-    VALUES (?, ?, ?, ?, ?)
-    ON CONFLICT(shortcut_id, endpoint) DO UPDATE SET
-      minutes_threshold = excluded.minutes_threshold
-  `).run(shortcutId, endpoint, p256dh, auth, minutesThreshold ?? 5)
+  await db.execute({
+    sql: `INSERT INTO push_subscriptions (shortcut_id, endpoint, p256dh, auth, minutes_threshold)
+          VALUES (?, ?, ?, ?, ?)
+          ON CONFLICT(shortcut_id, endpoint) DO UPDATE SET minutes_threshold = excluded.minutes_threshold`,
+    args: [shortcutId, endpoint, p256dh, auth, minutesThreshold ?? 5],
+  })
 
   res.json({ ok: true })
 })
 
-router.delete('/subscribe/:shortcutId', (req, res) => {
+router.delete('/subscribe/:shortcutId', async (req, res) => {
   const { shortcutId } = req.params
   const { endpoint } = req.body as { endpoint?: string }
 
   if (endpoint) {
-    db.prepare('DELETE FROM push_subscriptions WHERE shortcut_id = ? AND endpoint = ?').run(shortcutId, endpoint)
+    await db.execute({
+      sql: 'DELETE FROM push_subscriptions WHERE shortcut_id = ? AND endpoint = ?',
+      args: [shortcutId, endpoint],
+    })
   } else {
-    db.prepare('DELETE FROM push_subscriptions WHERE shortcut_id = ?').run(shortcutId)
+    await db.execute({
+      sql: 'DELETE FROM push_subscriptions WHERE shortcut_id = ?',
+      args: [shortcutId],
+    })
   }
 
   res.json({ ok: true })

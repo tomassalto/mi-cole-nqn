@@ -17,6 +17,7 @@ import vehiclesRouter from './routes/vehicles'
 import pushRouter from './routes/push'
 import { subscribeVehicles } from './lib/visionblo'
 import { startNotifier } from './lib/notifier'
+import { initDb } from './db'
 
 dotenv.config()
 
@@ -77,7 +78,14 @@ wss.on('connection', (ws, req) => {
   ws.on('error', () => unsub())
 })
 
-server.listen(PORT, () => {
-  console.log(`MiCole corriendo en http://localhost:${PORT}`)
-  startNotifier()
-})
+initDb()
+  .then(() => {
+    server.listen(PORT, () => {
+      console.log(`MiCole corriendo en http://localhost:${PORT}`)
+      startNotifier()
+    })
+  })
+  .catch(err => {
+    console.error('DB init failed:', err)
+    process.exit(1)
+  })

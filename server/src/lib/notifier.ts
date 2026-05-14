@@ -1,5 +1,5 @@
 import webpush from 'web-push'
-import db from '../db'
+import { db } from '../db'
 import { post } from './visionblo'
 
 interface PushRow {
@@ -36,7 +36,7 @@ async function checkAndNotify() {
   // Check if VAPID is configured
   if (!process.env.VAPID_PUBLIC_KEY || !process.env.VAPID_PRIVATE_KEY) return
 
-  const rows = db.prepare(`
+  const result = await db.execute(`
     SELECT
       ps.id,
       ps.shortcut_id,
@@ -52,8 +52,9 @@ async function checkAndNotify() {
       ss.dest_stop_name
     FROM push_subscriptions ps
     JOIN saved_shortcuts ss ON ss.id = ps.shortcut_id
-  `).all() as PushRow[]
+  `)
 
+  const rows = result.rows as unknown as PushRow[]
   if (rows.length === 0) return
 
   // Group by origin_stop_id to avoid duplicate arrivals calls
@@ -115,15 +116,15 @@ async function checkAndNotify() {
           { endpoint: sub.endpoint, keys: { p256dh: sub.p256dh, auth: sub.auth } },
           payload
         )
-        db.prepare(`
-          UPDATE push_subscriptions SET last_notified_at = datetime('now') WHERE id = ?
-        `).run(sub.id)
+        await db.execute({
+          sql: `UPDATE push_subscriptions SET last_notified_at = datetime('now') WHERE id = ?`,
+          args: [sub.id],
+        })
         console.log(`[notifier] Push sent to shortcut ${sub.shortcut_id}: ${minsUntil} min`)
       } catch (err: unknown) {
         const httpErr = err as { statusCode?: number }
         if (httpErr?.statusCode === 410 || httpErr?.statusCode === 404) {
-          // Subscription expired — delete it
-          db.prepare('DELETE FROM push_subscriptions WHERE id = ?').run(sub.id)
+          await db.execute({ sql: 'DELETE FROM push_subscriptions WHERE id = ?', args: [sub.id] })
           console.log(`[notifier] Deleted expired subscription ${sub.id}`)
         } else {
           console.error('[notifier] Push error:', err)
@@ -144,5 +145,5 @@ export function startNotifier() {
   setTimeout(() => {
     checkAndNotify().catch(console.error)
     setInterval(() => checkAndNotify().catch(console.error), INTERVAL_MS)
-  }, 30_000) // first check 30s after startup to let everything warm up
+  }, 30_000)
 }
