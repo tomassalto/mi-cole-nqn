@@ -10,7 +10,7 @@
     "dev": "concurrently -k -n server,frontend -c cyan,magenta \"npm run dev:server\" \"npm run dev:frontend\"",
     "dev:server": "cd server && npm run build && node dist/index.js",
     "dev:frontend": "wait-on http://localhost:3001/api/health && cd frontend && npm run dev",
-    "build": "npm run build -w frontend",
+    "build": "npm run build -w server && npm run build -w frontend",
     "start": "npm run start -w server"
   },
   "devDependencies": {
