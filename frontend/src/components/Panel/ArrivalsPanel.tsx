@@ -54,24 +54,22 @@ export default function ArrivalsPanel() {
 
   useEffect(() => {
     let cancelled = false;
-    const vehicleRefs = Object.entries(raw?.references?.vehicles ?? {})
+    type VehicleRef = { id: string; lat: number; lon: number; bearing?: number }
+    const vehicleRefs = (Object.entries(raw?.references?.vehicles ?? {})
       .map(([key, v]) => {
-        const id = v?.id ?? Number(key);
-        const lat = Number(v?.lat);
-        const lon = Number(v?.lon);
-        if (
-          !Number.isFinite(id) ||
-          !Number.isFinite(lat) ||
-          !Number.isFinite(lon)
-        )
-          return null;
+        if (v == null) return null
+        const id = v.id ?? Number(key);
+        const lat = Number(v.lat);
+        const lon = Number(v.lon);
+        if (!Number.isFinite(id) || !Number.isFinite(lat) || !Number.isFinite(lon)) return null;
         return {
           id: String(id),
           lat,
           lon,
-        };
+          bearing: v.bearing != null ? Number(v.bearing) : undefined,
+        } satisfies VehicleRef;
       })
-      .filter((v): v is { id: string; lat: number; lon: number } => v !== null);
+      .filter(Boolean)) as VehicleRef[];
     const ids = vehicleRefs.map((v) => v.id);
 
     if (!selectedStop || ids.length === 0) {
@@ -82,22 +80,20 @@ export default function ArrivalsPanel() {
     }
 
     const baseVehicles = new Map(
-      vehicleRefs.map(
-        (v) =>
-          [
-            v.id,
-            {
-              id: v.id,
-              lat: v.lat,
-              lon: v.lon,
-              routeCode: arrivalLookup.get(v.id)?.routeCode ?? "",
-              serviceId: "",
-              minutesUntil: 0,
-              arriving: false,
-              time: "",
-            },
-          ] as const,
-      ),
+      vehicleRefs.map((v) => [
+        v.id,
+        {
+          id: v.id,
+          lat: v.lat,
+          lon: v.lon,
+          routeCode: arrivalLookup.get(v.id)?.routeCode ?? "",
+          serviceId: "",
+          minutesUntil: 0,
+          arriving: false,
+          time: "",
+          bearing: v.bearing,
+        },
+      ]),
     );
 
     const syncSnapshot = () => {

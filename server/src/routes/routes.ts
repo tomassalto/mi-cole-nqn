@@ -21,6 +21,7 @@ router.get('/:serviceId/shape', async (req, res) => {
         code?: string
         name?: string
         stops?: number[]
+        headings?: number[]
       }
     }>('service', {
       service_id: serviceId,
@@ -34,7 +35,8 @@ router.get('/:serviceId/shape', async (req, res) => {
       color: svc.color ? `#${svc.color}` : '#1565C0',
       code: svc.code ?? String(serviceId),
       name: svc.name ?? '',
-      stops: svc.stops ?? []
+      stops: svc.stops ?? [],
+      headings: svc.headings ?? []
     }
 
     shapeCache.set(serviceId, result)

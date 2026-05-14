@@ -66,6 +66,8 @@ interface MapContextValue {
   vehicles: Vehicle[]
   routeCoords: [number, number][]
   routeStopIds: Set<number> | null
+  routeColor: string | null
+  routeHeadings: Map<number, number> | null
   etaMode: boolean
   activeDialog: 'none' | 'eta' | 'connection' | 'shortcut'
   connectionOrigin: Stop | null
@@ -118,6 +120,8 @@ export function MapProvider({ children }: { children: ReactNode }) {
   const [vehicles, setVehicles] = useState<Vehicle[]>([])
   const [routeCoords, setRouteCoords] = useState<[number, number][] | null>(null)
   const [routeStopIds, setRouteStopIds] = useState<Set<number> | null>(null)
+  const [routeColor, setRouteColor] = useState<string | null>(null)
+  const [routeHeadings, setRouteHeadings] = useState<Map<number, number> | null>(null)
   const [etaMode, setEtaModeState] = useState(false)
   const [activeDialog, setActiveDialog] = useState<'none' | 'eta' | 'connection' | 'shortcut'>('none')
   const [connectionOrigin, setConnectionOrigin] = useState<Stop | null>(null)
@@ -137,16 +141,28 @@ export function MapProvider({ children }: { children: ReactNode }) {
     try {
       const shape: RouteShape = await getRouteShape(Number(serviceId))
       if (shape.encoded) setRouteCoords(decodePolyline(shape.encoded))
-      if (shape.stops?.length) setRouteStopIds(new Set(shape.stops))
+      if (shape.stops?.length) {
+        setRouteStopIds(new Set(shape.stops))
+        if (shape.headings?.length === shape.stops.length) {
+          const hMap = new Map<number, number>()
+          shape.stops.forEach((stopId, i) => hMap.set(stopId, shape.headings[i]))
+          setRouteHeadings(hMap)
+        }
+      }
+      setRouteColor(shape.color ?? null)
     } catch {
       setRouteCoords(null)
       setRouteStopIds(null)
+      setRouteColor(null)
+      setRouteHeadings(null)
     }
   }, [])
 
   const clearRoute = useCallback(() => {
     setRouteCoords(null)
     setRouteStopIds(null)
+    setRouteColor(null)
+    setRouteHeadings(null)
   }, [])
 
   const selectStop = useCallback((stop: Stop | null) => setSelectedStop(stop), [])
@@ -190,6 +206,8 @@ export function MapProvider({ children }: { children: ReactNode }) {
       vehicles,
       routeCoords: routeCoords ?? [],
       routeStopIds,
+      routeColor,
+      routeHeadings,
       etaMode,
       activeDialog,
       connectionOrigin,

@@ -45,6 +45,7 @@ export interface Vehicle {
   minutesUntil: number
   arriving: boolean
   time: string
+  bearing?: number
 }
 
 export interface RouteShape {
@@ -53,6 +54,7 @@ export interface RouteShape {
   code: string
   name: string
   stops: number[]
+  headings: number[]
 }
 
 export interface TripStop {

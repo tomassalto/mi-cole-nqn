@@ -7,17 +7,21 @@ import { useMap as useMapCtx } from '@/contexts/MapContext'
 const DEFAULT_CENTER: [number, number] = [-38.9516, -68.0591]
 const DEFAULT_ZOOM = 15
 
-function createStopIcon(selected: boolean) {
+function createStopIcon(selected: boolean, heading?: number) {
+  const arrow = heading != null
+    ? `<span style="position:absolute;top:-7px;left:50%;transform:translateX(-50%) rotate(${heading}deg);font-size:7px;line-height:1;color:#1565C0;">▲</span>`
+    : ''
   return L.divIcon({
     className: '',
-    html: `<div class="stop-marker${selected ? ' selected' : ''}"></div>`,
+    html: `<div class="stop-marker${selected ? ' selected' : ''}" style="position:relative;">${arrow}</div>`,
     iconSize: selected ? [18, 18] : [14, 14],
     iconAnchor: selected ? [9, 9] : [7, 7],
   })
 }
 
-function createBusIcon(routeCode: string) {
-  const svg = `<svg class="bam-svg" viewBox="-5.5 0 32 32" xmlns="http://www.w3.org/2000/svg">
+function createBusIcon(routeCode: string, bearing?: number) {
+  const rotation = bearing != null ? `transform:rotate(${bearing}deg);` : ''
+  const svg = `<svg class="bam-svg" style="${rotation}" viewBox="-5.5 0 32 32" xmlns="http://www.w3.org/2000/svg">
     <path d="M0 22.281v-13.563c0-0.438 0.25-1 0.594-1.344 0.094-0.094 0.219-0.156 0.313-0.219h0.031c1.5-1.156 3.469-2 5.719-2.469 1.188-0.219 2.438-0.344 3.75-0.344s2.563 0.125 3.75 0.344c2.25 0.469 4.219 1.313 5.719 2.469h0.031c0.094 0.063 0.188 0.125 0.281 0.219 0.344 0.344 0.625 0.906 0.625 1.344v13.563c0 1-0.688 1.781-1.594 2v1.813c0 0.844-0.688 1.563-1.531 1.563-0.875 0-1.563-0.719-1.563-1.563v-1.75h-11.438v1.75c0 0.844-0.719 1.563-1.563 1.563-0.875 0-1.563-0.719-1.563-1.563v-1.813c-0.906-0.219-1.563-1-1.563-2z" fill="#1a1a1a"/>
     <path d="M3.125 17.063h14.531c0.563 0 1.031-0.5 1.031-1.063v-5.156c0-0.563-0.469-1.063-1.031-1.063h-14.531c-0.563 0-1 0.5-1 1.063v5.156c0 0.563 0.438 1.063 1 1.063z" fill="#fff"/>
   </svg>`
@@ -83,6 +87,8 @@ export default function MapView() {
     vehicles,
     routeCoords,
     routeStopIds,
+    routeColor,
+    routeHeadings,
     etaMode,
     activeDialog,
     connectionOrigin,
@@ -173,7 +179,7 @@ export default function MapView() {
           <Marker
             key={stop.id}
             position={[stop.lat, stop.lon]}
-            icon={createStopIcon(selectedStop?.id === stop.id)}
+            icon={createStopIcon(selectedStop?.id === stop.id, routeHeadings?.get(stop.id))}
             eventHandlers={{ click: () => handleMarkerClick(stop) }}
           />
         ))}
@@ -181,12 +187,12 @@ export default function MapView() {
           <Marker
             key={veh.id}
             position={[veh.lat, veh.lon]}
-            icon={createBusIcon(veh.routeCode)}
+            icon={createBusIcon(veh.routeCode, veh.bearing)}
             zIndexOffset={100}
           />
         ))}
         {routeCoords && routeCoords.length > 0 && (
-          <Polyline positions={routeCoords} pathOptions={{ color: '#1a1a1a', weight: 5, opacity: 0.85 }} />
+          <Polyline positions={routeCoords} pathOptions={{ color: routeColor ?? '#1565C0', weight: 5, opacity: 0.85 }} />
         )}
       </MapContainer>
 
