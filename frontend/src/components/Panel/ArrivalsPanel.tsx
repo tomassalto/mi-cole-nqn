@@ -54,59 +54,51 @@ export default function ArrivalsPanel() {
 
   useEffect(() => {
     let cancelled = false;
-    type VehicleRef = { id: string; lat: number; lon: number; bearing?: number }
-    const vehicleRefs = (Object.entries(raw?.references?.vehicles ?? {})
-      .map(([key, v]) => {
-        if (v == null) return null
-        const id = v.id ?? Number(key);
-        const lat = Number(v.lat);
-        const lon = Number(v.lon);
-        if (!Number.isFinite(id) || !Number.isFinite(lat) || !Number.isFinite(lon)) return null;
-        return {
-          id: String(id),
-          lat,
-          lon,
-          bearing: v.bearing != null ? Number(v.bearing) : undefined,
-        } satisfies VehicleRef;
-      })
-      .filter(Boolean)) as VehicleRef[];
-    const ids = vehicleRefs.map((v) => v.id);
 
-    if (!selectedStop || ids.length === 0) {
+    // Vehicle IDs come from arrivals that have a vehicleId
+    const vehicleIds = arrivals
+      .filter((a) => a.vehicleId)
+      .map((a) => a.vehicleId as string);
+    // Also include IDs from references.vehicles
+    const refIds = Object.keys(raw?.references?.vehicles ?? {});
+    const allIds = [...new Set([...vehicleIds, ...refIds])];
+
+    if (!selectedStop || allIds.length === 0) {
       updateVehicles([]);
-      return () => {
-        cancelled = true;
-      };
+      return () => { cancelled = true; };
     }
 
+    // Vehicles start without positions — they'll get populated via WebSocket
     const baseVehicles = new Map(
-      vehicleRefs.map((v) => [
-        v.id,
+      allIds.map((id) => [
+        id,
         {
-          id: v.id,
-          lat: v.lat,
-          lon: v.lon,
-          routeCode: arrivalLookup.get(v.id)?.routeCode ?? "",
+          id,
+          lat: 0,
+          lon: 0,
+          routeCode: arrivalLookup.get(id)?.routeCode ?? "",
           serviceId: "",
           minutesUntil: 0,
           arriving: false,
           time: "",
-          bearing: v.bearing,
+          bearing: undefined as number | undefined,
         },
       ]),
     );
 
     const syncSnapshot = () => {
       if (cancelled) return;
-      updateVehicles([...baseVehicles.values()]);
+      // Only push vehicles that have received a position (lat !== 0)
+      const withPosition = [...baseVehicles.values()].filter(
+        (v) => v.lat !== 0 && v.lon !== 0,
+      );
+      updateVehicles(withPosition);
     };
-
-    syncSnapshot();
 
     const wsUrl =
       window.location.port === "5173"
-        ? `ws://localhost:3001/ws/vehicles?ids=${encodeURIComponent(ids.join(","))}`
-        : `${window.location.protocol === "https:" ? "wss:" : "ws:"}//${window.location.host}/ws/vehicles?ids=${encodeURIComponent(ids.join(","))}`;
+        ? `ws://localhost:3001/ws/vehicles?ids=${encodeURIComponent(allIds.join(","))}`
+        : `${window.location.protocol === "https:" ? "wss:" : "ws:"}//${window.location.host}/ws/vehicles?ids=${encodeURIComponent(allIds.join(","))}`;
     const ws = new WebSocket(wsUrl);
 
     ws.onmessage = (event) => {
@@ -184,7 +176,10 @@ export default function ArrivalsPanel() {
   };
 
   const handleClearFilter = () => clearRoute();
-  const handleClose = () => selectStop(null);
+  const handleClose = () => {
+    clearRoute();
+    selectStop(null);
+  };
   const handleBack = () => {
     setView("arrivals");
     setSelectedTripId(null);

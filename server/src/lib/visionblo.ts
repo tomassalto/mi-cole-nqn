@@ -103,34 +103,58 @@ export async function postBuffer(endpoint: string, body: Record<string, unknown>
 }
 
 // ── Vehicle WebSocket subscription ─────────────────────────────────────────
+//
+// Visionblo WS protocol:
+//   URL: wss://owa.visionblo.com/api/neuquen/location/{vehicleIds}/{token}
+//   Messages: JSON arrays [vehicleId, lon*1e7, lat*1e7]
+//             or [vehicleId] (vehicle went offline)
+//   Switch:   send ["switch", id1, id2, ...] to change subscriptions
+//
 
 type VehicleCallback = (id: string, lat: number, lon: number) => void
 const vehicleSubscriptions = new Map<string, Set<VehicleCallback>>()
 let ws: WebSocket | null = null
-
-function connectVehicleWs(): void {
+async function connectVehicleWs(): Promise<void> {
   if (ws) return
-  const proto = process.env.WS_PROTO ?? 'wss:'
-  const host = process.env.WS_HOST ?? 'owa.visionblo.com'
-  ws = new WebSocket(`${proto}//${host}/api/neuquen/vehicles/ws`)
+
+  const ids = [...vehicleSubscriptions.keys()]
+  if (ids.length === 0) return
+
+  const token = await getToken()
+  if (!token) return
+
+  const url = `wss://owa.visionblo.com/api/neuquen/location/${ids.join(',')}/${encodeURIComponent(token)}`
+  ws = new WebSocket(url, {
+    headers: {
+      'Origin': 'https://owa.visionblo.com',
+      'User-Agent': HEADERS['User-Agent'],
+    },
+  })
 
   ws.onmessage = (event: WebSocket.MessageEvent) => {
     try {
       const raw = event.data
       if (typeof raw !== 'string') return
-      const data = JSON.parse(raw) as { id?: string; lat?: number; lon?: number }
-      if (data.id && data.lat != null && data.lon != null) {
-        const cbs = vehicleSubscriptions.get(String(data.id))
-        if (cbs) {
-          for (const cb of cbs) cb(String(data.id), data.lat, data.lon)
-        }
+
+      const data = JSON.parse(raw) as number[]
+      if (!Array.isArray(data) || data.length < 3) return
+
+      const id = String(data[0])
+      const lon = data[1] / 1e7
+      const lat = data[2] / 1e7
+
+      const cbs = vehicleSubscriptions.get(id)
+      if (cbs) {
+        for (const cb of cbs) cb(id, lat, lon)
       }
     } catch {}
   }
 
   ws.onclose = () => {
     ws = null
-    setTimeout(connectVehicleWs, 5000)
+    if (vehicleSubscriptions.size > 0) {
+      setTimeout(connectVehicleWs, 5000)
+    }
   }
 
   ws.onerror = () => {
@@ -138,7 +162,20 @@ function connectVehicleWs(): void {
   }
 }
 
+/** Send a "switch" command to update which vehicles we're tracking. */
+function switchVehicles(): void {
+  if (!ws || ws.readyState !== WebSocket.OPEN) return
+  const ids = [...vehicleSubscriptions.keys()]
+  if (ids.length === 0) {
+    ws.close()
+    return
+  }
+  ws.send(JSON.stringify(['switch', ...ids.map(Number)]))
+}
+
 export function subscribeVehicles(ids: string[], cb: VehicleCallback): () => void {
+  const hadSubscriptions = vehicleSubscriptions.size > 0
+
   for (const id of ids) {
     if (!vehicleSubscriptions.has(id)) {
       vehicleSubscriptions.set(id, new Set())
@@ -146,7 +183,12 @@ export function subscribeVehicles(ids: string[], cb: VehicleCallback): () => voi
     vehicleSubscriptions.get(id)!.add(cb)
   }
 
-  if (!ws) connectVehicleWs()
+  if (!ws) {
+    connectVehicleWs()
+  } else if (hadSubscriptions) {
+    // WS already open — just switch to include new IDs
+    switchVehicles()
+  }
 
   return () => {
     for (const id of ids) {
@@ -154,6 +196,12 @@ export function subscribeVehicles(ids: string[], cb: VehicleCallback): () => voi
       if (vehicleSubscriptions.get(id)?.size === 0) {
         vehicleSubscriptions.delete(id)
       }
+    }
+    // Update the WS subscription if still connected
+    if (vehicleSubscriptions.size > 0) {
+      switchVehicles()
+    } else if (ws) {
+      ws.close()
     }
   }
 }

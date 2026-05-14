@@ -20,6 +20,7 @@ export default defineConfig({
     }),
   ],
   root: '.',
+  envDir: '..',
   publicDir: '../../public',
   resolve: {
     alias: {
