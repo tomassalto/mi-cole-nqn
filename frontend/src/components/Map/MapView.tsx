@@ -3,20 +3,30 @@ import { MapContainer, TileLayer, useMap, useMapEvents, Marker, Polyline } from 
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 import { useMap as useMapCtx } from '@/contexts/MapContext'
-import { useApp } from '@/contexts/AppContext'
 
 const DEFAULT_CENTER: [number, number] = [-38.9516, -68.0591]
 const DEFAULT_ZOOM = 15
 
 function createStopIcon(selected: boolean, heading?: number) {
-  const arrow = heading != null
-    ? `<span style="position:absolute;top:-7px;left:50%;transform:translateX(-50%) rotate(${heading}deg);font-size:7px;line-height:1;color:#1565C0;">▲</span>`
-    : ''
+  const size = selected ? 18 : 14
+  if (heading != null) {
+    // Contenedor 28x28 que incluye el círculo (centrado) + flecha (borde superior)
+    // El anchor queda en el centro del círculo → offset (14, 14)
+    return L.divIcon({
+      className: '',
+      html: `<div style="width:28px;height:28px;position:relative;display:flex;align-items:center;justify-content:center;">
+        <div class="stop-marker${selected ? ' selected' : ''}" style="width:${size}px;height:${size}px;"></div>
+        <span style="position:absolute;inset:0;display:flex;align-items:flex-start;justify-content:center;transform:rotate(${heading}deg);font-size:9px;color:#1d4ed8;line-height:1;padding-top:0px;font-weight:bold;">▲</span>
+      </div>`,
+      iconSize: [28, 28],
+      iconAnchor: [14, 14],
+    })
+  }
   return L.divIcon({
     className: '',
-    html: `<div class="stop-marker${selected ? ' selected' : ''}" style="position:relative;">${arrow}</div>`,
-    iconSize: selected ? [18, 18] : [14, 14],
-    iconAnchor: selected ? [9, 9] : [7, 7],
+    html: `<div class="stop-marker${selected ? ' selected' : ''}"></div>`,
+    iconSize: [size, size],
+    iconAnchor: [size / 2, size / 2],
   })
 }
 
@@ -74,7 +84,6 @@ function MapEvents() {
 
 export default function MapView() {
   const [basemap, setBasemap] = useState<'calm' | 'street'>('calm')
-  const { theme } = useApp()
   const [mapBounds, setMapBounds] = useState<L.LatLngBounds | null>(null)
   const [mapZoom, setMapZoom] = useState<number>(DEFAULT_ZOOM)
 
@@ -165,9 +174,7 @@ export default function MapView() {
         {basemap === 'calm' ? (
           <TileLayer
             attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>'
-            url={theme === 'dark'
-              ? 'https://{s}.basemaps.cartocdn.com/dark_matter/{z}/{x}/{y}{r}.png'
-              : 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png'}
+            url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
             maxZoom={20}
           />
         ) : (

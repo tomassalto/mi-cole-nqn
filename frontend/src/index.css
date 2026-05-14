@@ -150,7 +150,7 @@ body::before {
 }
 
 [data-theme="dark"] .leaflet-container {
-  background: #1c2128 !important;
+  background: #dbe7ef !important;
 }
 
 [data-theme="dark"] .leaflet-control-zoom {
