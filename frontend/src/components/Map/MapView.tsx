@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react'
-import { MapContainer, TileLayer, useMap, Marker, Polyline } from 'react-leaflet'
+import { useCallback, useEffect, useState } from 'react'
+import { MapContainer, TileLayer, useMap, useMapEvents, Marker, Polyline } from 'react-leaflet'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 import { useMap as useMapCtx } from '@/contexts/MapContext'
@@ -29,6 +29,22 @@ function createBusIcon(routeCode: string) {
   })
 }
 
+const MIN_ZOOM_FOR_STOPS = 13
+
+function BoundsTracker({ onBoundsChange }: {
+  onBoundsChange: (bounds: L.LatLngBounds, zoom: number) => void
+}) {
+  const map = useMapEvents({
+    moveend() { onBoundsChange(map.getBounds(), map.getZoom()) },
+    zoomend() { onBoundsChange(map.getBounds(), map.getZoom()) },
+  })
+  useEffect(() => {
+    onBoundsChange(map.getBounds(), map.getZoom())
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+  return null
+}
+
 function MapEvents() {
   const map = useMap()
   const { setEtaMode } = useMapCtx()
@@ -53,6 +69,13 @@ function MapEvents() {
 
 export default function MapView() {
   const [basemap, setBasemap] = useState<'calm' | 'street'>('calm')
+  const [mapBounds, setMapBounds] = useState<L.LatLngBounds | null>(null)
+  const [mapZoom, setMapZoom] = useState<number>(DEFAULT_ZOOM)
+
+  const handleBoundsChange = useCallback((bounds: L.LatLngBounds, zoom: number) => {
+    setMapBounds(bounds)
+    setMapZoom(zoom)
+  }, [])
   const {
     selectedStop,
     selectStop,
@@ -124,7 +147,9 @@ export default function MapView() {
 
   const visibleMarkers = routeStopIds
     ? stops.filter(s => routeStopIds.has(s.id))
-    : stops
+    : (mapBounds && mapZoom >= MIN_ZOOM_FOR_STOPS)
+      ? stops.filter(s => mapBounds.contains([s.lat, s.lon]))
+      : []
 
   return (
     <div className="fixed top-[52px] left-0 right-0 bottom-0 z-0">
@@ -142,6 +167,7 @@ export default function MapView() {
             maxZoom={19}
           />
         )}
+        <BoundsTracker onBoundsChange={handleBoundsChange} />
         <MapEvents />
         {visibleMarkers.map(stop => (
           <Marker
