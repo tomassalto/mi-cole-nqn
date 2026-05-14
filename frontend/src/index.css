@@ -112,3 +112,58 @@ body::before {
   border-radius: 0 !important;
   color: #0f172a !important;
 }
+
+/* ── Dark mode ─────────────────────────────────────────────────────────────── */
+
+@variant dark (&:is([data-theme="dark"] *));
+
+[data-theme="dark"] {
+  --bg: #0d1117;
+  --bg-alt: #161b22;
+  --surface: rgba(22, 27, 34, 0.92);
+  --surface-solid: #161b22;
+  --surface-strong: #f0f6fc;
+  --text: #e6edf3;
+  --text-soft: #8b949e;
+  --border: rgba(240, 246, 252, 0.10);
+  --shadow: 0 24px 80px rgba(0, 0, 0, 0.50);
+  --shadow-soft: 0 12px 30px rgba(0, 0, 0, 0.30);
+  --accent: #2dd4bf;
+  --accent-strong: #99f6e4;
+  --accent-2: #f0a04b;
+  --accent-3: #60a5fa;
+  --arrival-early: #f85149;
+  --arrival-late: #58a6ff;
+  --arrival-ontime: #3fb950;
+  --arrival-scheduled: #6e7681;
+}
+
+[data-theme="dark"] html {
+  background:
+    radial-gradient(circle at top left, rgba(45, 212, 191, 0.08), transparent 28%),
+    radial-gradient(circle at 80% 0%, rgba(96, 165, 250, 0.07), transparent 24%),
+    linear-gradient(180deg, var(--bg) 0%, var(--bg-alt) 100%);
+}
+
+[data-theme="dark"] body::before {
+  display: none;
+}
+
+[data-theme="dark"] .leaflet-container {
+  background: #1c2128 !important;
+}
+
+[data-theme="dark"] .leaflet-control-zoom {
+  background: #161b22 !important;
+}
+
+[data-theme="dark"] .leaflet-control-zoom a {
+  background: #161b22 !important;
+  color: #e6edf3 !important;
+}
+
+[data-theme="dark"] .bam-route-code {
+  background: rgba(22, 27, 34, 0.92);
+  color: #e6edf3;
+  border-color: rgba(240, 246, 252, 0.12);
+}

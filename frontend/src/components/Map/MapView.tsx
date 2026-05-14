@@ -3,6 +3,7 @@ import { MapContainer, TileLayer, useMap, useMapEvents, Marker, Polyline } from 
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 import { useMap as useMapCtx } from '@/contexts/MapContext'
+import { useApp } from '@/contexts/AppContext'
 
 const DEFAULT_CENTER: [number, number] = [-38.9516, -68.0591]
 const DEFAULT_ZOOM = 15
@@ -73,6 +74,7 @@ function MapEvents() {
 
 export default function MapView() {
   const [basemap, setBasemap] = useState<'calm' | 'street'>('calm')
+  const { theme } = useApp()
   const [mapBounds, setMapBounds] = useState<L.LatLngBounds | null>(null)
   const [mapZoom, setMapZoom] = useState<number>(DEFAULT_ZOOM)
 
@@ -163,7 +165,9 @@ export default function MapView() {
         {basemap === 'calm' ? (
           <TileLayer
             attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>'
-            url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
+            url={theme === 'dark'
+              ? 'https://{s}.basemaps.cartocdn.com/dark_matter/{z}/{x}/{y}{r}.png'
+              : 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png'}
             maxZoom={20}
           />
         ) : (
@@ -202,8 +206,8 @@ export default function MapView() {
           onClick={() => setBasemap('calm')}
           className={`pointer-events-auto rounded-full border px-3 py-2 text-xs font-semibold shadow-[0_12px_30px_rgba(15,23,42,0.12)] transition-colors ${
             basemap === 'calm'
-              ? 'border-slate-900 bg-slate-900 text-white'
-              : 'border-white/70 bg-white/90 text-slate-700'
+              ? 'border-slate-900 bg-slate-900 text-white dark:border-slate-100 dark:bg-slate-100 dark:text-slate-900'
+              : 'border-white/70 bg-white/90 text-slate-700 dark:border-slate-700 dark:bg-slate-800/90 dark:text-slate-300'
           }`}
         >
           Calmo
@@ -213,8 +217,8 @@ export default function MapView() {
           onClick={() => setBasemap('street')}
           className={`pointer-events-auto rounded-full border px-3 py-2 text-xs font-semibold shadow-[0_12px_30px_rgba(15,23,42,0.12)] transition-colors ${
             basemap === 'street'
-              ? 'border-slate-900 bg-slate-900 text-white'
-              : 'border-white/70 bg-white/90 text-slate-700'
+              ? 'border-slate-900 bg-slate-900 text-white dark:border-slate-100 dark:bg-slate-100 dark:text-slate-900'
+              : 'border-white/70 bg-white/90 text-slate-700 dark:border-slate-700 dark:bg-slate-800/90 dark:text-slate-300'
           }`}
         >
           Detalle

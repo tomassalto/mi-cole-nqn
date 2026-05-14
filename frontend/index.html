@@ -9,6 +9,9 @@
     <link rel="icon" type="image/png" sizes="192x192" href="/icon/icon-192.png" />
     <link rel="apple-touch-icon" href="/icon/apple-touch-icon.png" />
     <link rel="manifest" href="/manifest.json" />
+    <script>
+      (function(){var t=localStorage.getItem('micole-theme');if(t==='dark'||(!t&&window.matchMedia('(prefers-color-scheme: dark)').matches))document.documentElement.setAttribute('data-theme','dark')})()
+    </script>
   </head>
   <body>
     <div id="root"></div>

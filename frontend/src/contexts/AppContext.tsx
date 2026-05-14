@@ -14,6 +14,8 @@ interface AppContextValue {
   savedShortcuts: SavedShortcut[]
   refreshSavedConnections: () => Promise<void>
   refreshSavedShortcuts: () => Promise<void>
+  theme: 'light' | 'dark'
+  toggleTheme: () => void
 }
 
 const AppContext = createContext<AppContextValue | null>(null)
@@ -23,6 +25,18 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [consultationOpen, setConsultationOpen] = useState(false)
   const [savedConnections, setSavedConnections] = useState<SavedConnection[]>([])
   const [savedShortcuts, setSavedShortcuts] = useState<SavedShortcut[]>([])
+  const [theme, setTheme] = useState<'light' | 'dark'>(() => {
+    const saved = typeof window !== 'undefined' ? localStorage.getItem('micole-theme') : null
+    if (saved === 'dark' || saved === 'light') return saved
+    return typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
+  })
+
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', theme)
+    localStorage.setItem('micole-theme', theme)
+  }, [theme])
+
+  const toggleTheme = useCallback(() => setTheme(t => t === 'light' ? 'dark' : 'light'), [])
 
   const openDrawer = useCallback(() => setDrawerOpen(true), [])
   const closeDrawer = useCallback(() => setDrawerOpen(false), [])
@@ -64,6 +78,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
       savedShortcuts,
       refreshSavedConnections,
       refreshSavedShortcuts,
+      theme,
+      toggleTheme,
     }}>
       {children}
     </AppContext.Provider>

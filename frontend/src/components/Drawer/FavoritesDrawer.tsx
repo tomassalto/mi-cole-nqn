@@ -76,25 +76,25 @@ export default function FavoritesDrawer() {
         className={`fixed inset-0 z-[700] bg-slate-950/35 transition-opacity duration-300 ${drawerOpen ? 'pointer-events-auto opacity-100' : 'pointer-events-none opacity-0'}`}
         onClick={closeDrawer}
       />
-      <aside className={`fixed bottom-0 left-0 top-0 z-[800] flex w-[320px] max-w-[92vw] flex-col overflow-hidden border-r border-white/70 bg-white/92 shadow-[18px_0_50px_rgba(15,23,42,0.16)] backdrop-blur-xl transition-transform duration-300 ${drawerOpen ? 'translate-x-0' : '-translate-x-full'}`}>
-        <div className="flex items-center justify-between border-b border-slate-200/80 px-4 py-4">
-          <h2 className="text-sm font-semibold text-slate-900">Paradas guardadas</h2>
+      <aside className={`fixed bottom-0 left-0 top-0 z-[800] flex w-[320px] max-w-[92vw] flex-col overflow-hidden border-r border-white/70 bg-white/92 shadow-[18px_0_50px_rgba(15,23,42,0.16)] backdrop-blur-xl transition-transform duration-300 dark:border-slate-700/70 dark:bg-slate-900/95 dark:shadow-[18px_0_50px_rgba(0,0,0,0.40)] ${drawerOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+        <div className="flex items-center justify-between border-b border-slate-200/80 px-4 py-4 dark:border-slate-700/80">
+          <h2 className="text-sm font-semibold text-slate-900 dark:text-slate-100">Paradas guardadas</h2>
           <IconButton icon={<span>✕</span>} onClick={closeDrawer} label="Cerrar" variant="filled" />
         </div>
         <div className="flex-1 overflow-y-auto py-2">
           {lines.length > 0 && (
             <>
-              <div className="px-4 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">Lineas guardadas</div>
+              <div className="px-4 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">Lineas guardadas</div>
               {lines.map(line => (
                 <div
                   key={line.id}
-                  className="flex cursor-pointer items-center gap-2.5 border-b border-slate-200/70 px-4 py-3 transition-colors hover:bg-slate-50"
+                  className="flex cursor-pointer items-center gap-2.5 border-b border-slate-200/70 px-4 py-3 transition-colors hover:bg-slate-50 dark:border-slate-700/70 dark:hover:bg-slate-800"
                   onClick={() => handleSelectLine(line)}
                 >
                   <span className="text-amber-400 text-lg">★</span>
                   <div className="flex min-w-0 flex-1 items-center gap-1.5">
                     <Badge routeCode={line.route_code ?? ''} size="sm" />
-                    <span className="truncate text-xs text-slate-500">{line.route_name}</span>
+                    <span className="truncate text-xs text-slate-500 dark:text-slate-400">{line.route_name}</span>
                   </div>
                   <IconButton
                     icon={<span className="text-sm opacity-60">✕</span>}
@@ -111,11 +111,11 @@ export default function FavoritesDrawer() {
               {stops.map(fav => (
                 <div
                   key={fav.id}
-                  className="flex cursor-pointer items-center gap-2.5 border-b border-slate-200/70 px-4 py-3 transition-colors hover:bg-slate-50"
+                  className="flex cursor-pointer items-center gap-2.5 border-b border-slate-200/70 px-4 py-3 transition-colors hover:bg-slate-50 dark:border-slate-700/70 dark:hover:bg-slate-800"
                   onClick={() => handleSelectStop(fav)}
                 >
                   <span className="text-amber-400 text-lg">★</span>
-                  <span className="min-w-0 flex-1 truncate text-[0.95rem] text-slate-900">{fav.name}</span>
+                  <span className="min-w-0 flex-1 truncate text-[0.95rem] text-slate-900 dark:text-slate-100">{fav.name}</span>
                   <IconButton
                     icon={<span className="text-sm opacity-60">✕</span>}
                     onClick={(e: MouseEvent) => { e.stopPropagation(); removeStop(Number(fav.id)) }}
@@ -126,21 +126,21 @@ export default function FavoritesDrawer() {
             </>
           )}
           {stops.length === 0 && lines.length === 0 && savedConnections.length === 0 && (
-            <p className="px-4 py-6 text-center text-sm text-slate-500">Guardá paradas, lineas o conexiones</p>
+            <p className="px-4 py-6 text-center text-sm text-slate-500 dark:text-slate-400">Guardá paradas, lineas o conexiones</p>
           )}
           {savedConnections.length > 0 && (
             <>
-              <div className="px-4 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">Mis conexiones</div>
+              <div className="px-4 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">Mis conexiones</div>
               {savedConnections.map(conn => (
                 <div
                   key={conn.id}
-                  className="flex cursor-pointer items-center gap-2.5 border-b border-slate-200/70 px-4 py-3 transition-colors hover:bg-slate-50"
+                  className="flex cursor-pointer items-center gap-2.5 border-b border-slate-200/70 px-4 py-3 transition-colors hover:bg-slate-50 dark:border-slate-700/70 dark:hover:bg-slate-800"
                   onClick={() => handleOpenConnection(conn)}
                 >
                   <span className="text-amber-400 text-lg">⟳</span>
                   <div className="flex min-w-0 flex-1 items-center gap-1.5">
-                    <span className="truncate text-[0.95rem] text-slate-900">{conn.name}</span>
-                    <span className="text-xs text-slate-500">{conn.line_a_route_code} {'→'} {conn.line_b_route_code}</span>
+                    <span className="truncate text-[0.95rem] text-slate-900 dark:text-slate-100">{conn.name}</span>
+                    <span className="text-xs text-slate-500 dark:text-slate-400">{conn.line_a_route_code} {'→'} {conn.line_b_route_code}</span>
                   </div>
                   <IconButton
                     icon={<span className="text-sm">🔎</span>}
