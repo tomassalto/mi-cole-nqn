@@ -17,14 +17,17 @@ export default function IconButton({
   color,
   className = '',
 }: IconButtonProps) {
+  const base = 'inline-flex h-10 w-10 items-center justify-center rounded-full border transition-all focus:outline-none focus:ring-2 focus:ring-emerald-500/40'
+  const styles = variant === 'filled'
+    ? color ?? 'border-white/20 bg-slate-900 text-white shadow-lg shadow-slate-900/15'
+    : 'border-transparent bg-white/70 text-slate-700 hover:border-slate-200 hover:bg-white hover:text-slate-900'
+
   return (
     <button
       onClick={onClick}
       aria-label={label}
       title={label}
-      className={`w-10 h-10 flex items-center justify-center rounded-full transition-colors ${
-        variant === 'filled' ? color ?? 'bg-white/15 text-white' : 'text-[#6b7280] hover:bg-[#f5f7fa]'
-      } ${className}`}
+      className={`${base} ${styles} ${className}`}
     >
       {icon}
     </button>

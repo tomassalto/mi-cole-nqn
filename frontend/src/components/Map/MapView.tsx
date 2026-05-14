@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { MapContainer, TileLayer, useMap, Marker, Polyline } from 'react-leaflet'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
@@ -52,24 +52,62 @@ function MapEvents() {
 }
 
 export default function MapView() {
-  const { selectedStop, selectStop, stops, vehicles, routeCoords, routeStopIds, etaMode, activeDialog, connectionOrigin, setConnectionOrigin, setConnectionDest, connectionCreationStep, setConnectionCreationStep, updateConnectionCreationData } = useMapCtx()
+  const [basemap, setBasemap] = useState<'calm' | 'street'>('calm')
+  const {
+    selectedStop,
+    selectStop,
+    stops,
+    vehicles,
+    routeCoords,
+    routeStopIds,
+    etaMode,
+    activeDialog,
+    connectionOrigin,
+    setConnectionOrigin,
+    setConnectionDest,
+    connectionCreationStep,
+    setConnectionCreationStep,
+    updateConnectionCreationData,
+    shortcutCreationStep,
+    setShortcutCreationStep,
+    updateShortcutCreationData,
+    setActiveDialog,
+  } = useMapCtx()
 
-  const visibleStops = routeStopIds
-    ? stops.filter(s => routeStopIds.has(s.id))
-    : stops
-
-  const isSelectingForConnection = activeDialog === 'connection' && connectionCreationStep !== 'idle'
+  const isSelectingForConnection = connectionCreationStep !== 'idle'
+  const isSelectingForShortcut = shortcutCreationStep !== 'idle'
 
   const handleMarkerClick = (stop: typeof stops[0]) => {
     if (isSelectingForConnection) {
       if (connectionCreationStep === 'selectOrigin') {
         updateConnectionCreationData({ originStop: stop })
         setConnectionCreationStep('selectLineA')
+        setActiveDialog('connection')
       } else if (connectionCreationStep === 'selectCombination') {
         updateConnectionCreationData({ combinationStop: stop })
         setConnectionCreationStep('selectLineB')
+        setActiveDialog('connection')
+      } else if (connectionCreationStep === 'selectBoardStop') {
+        updateConnectionCreationData({ boardStop: stop })
+        setConnectionCreationStep('selectDest')
+        setActiveDialog('connection')
       } else if (connectionCreationStep === 'selectDest') {
         updateConnectionCreationData({ destStop: stop })
+        setActiveDialog('connection')
+      }
+      return
+    }
+    if (isSelectingForShortcut) {
+      if (shortcutCreationStep === 'selectOrigin') {
+        updateShortcutCreationData({ originStop: stop })
+        setShortcutCreationStep('selectDest')
+        setActiveDialog('none')
+      } else if (shortcutCreationStep === 'selectDest') {
+        updateShortcutCreationData({ destStop: stop })
+        setShortcutCreationStep('selectLine')
+        setActiveDialog('shortcut')
+      } else {
+        return
       }
       return
     }
@@ -84,33 +122,72 @@ export default function MapView() {
     }
   }
 
+  const visibleMarkers = routeStopIds
+    ? stops.filter(s => routeStopIds.has(s.id))
+    : stops
+
   return (
-    <MapContainer center={DEFAULT_CENTER} zoom={DEFAULT_ZOOM} className="fixed top-[52px] left-0 right-0 bottom-0 z-0">
-      <TileLayer
-        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-        maxZoom={19}
-      />
-      <MapEvents />
-      {visibleStops.map(stop => (
-        <Marker
-          key={stop.id}
-          position={[stop.lat, stop.lon]}
-          icon={createStopIcon(selectedStop?.id === stop.id)}
-          eventHandlers={{ click: () => handleMarkerClick(stop) }}
-        />
-      ))}
-      {vehicles.map(veh => (
-        <Marker
-          key={veh.id}
-          position={[veh.lat, veh.lon]}
-          icon={createBusIcon(veh.routeCode)}
-          zIndexOffset={100}
-        />
-      ))}
-      {routeCoords && routeCoords.length > 0 && (
-        <Polyline positions={routeCoords} pathOptions={{ color: '#1a1a1a', weight: 5, opacity: 0.85 }} />
-      )}
-    </MapContainer>
+    <div className="fixed top-[52px] left-0 right-0 bottom-0 z-0">
+      <MapContainer center={DEFAULT_CENTER} zoom={DEFAULT_ZOOM} className="absolute inset-0">
+        {basemap === 'calm' ? (
+          <TileLayer
+            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>'
+            url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
+            maxZoom={20}
+          />
+        ) : (
+          <TileLayer
+            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+            maxZoom={19}
+          />
+        )}
+        <MapEvents />
+        {visibleMarkers.map(stop => (
+          <Marker
+            key={stop.id}
+            position={[stop.lat, stop.lon]}
+            icon={createStopIcon(selectedStop?.id === stop.id)}
+            eventHandlers={{ click: () => handleMarkerClick(stop) }}
+          />
+        ))}
+        {vehicles.map(veh => (
+          <Marker
+            key={veh.id}
+            position={[veh.lat, veh.lon]}
+            icon={createBusIcon(veh.routeCode)}
+            zIndexOffset={100}
+          />
+        ))}
+        {routeCoords && routeCoords.length > 0 && (
+          <Polyline positions={routeCoords} pathOptions={{ color: '#1a1a1a', weight: 5, opacity: 0.85 }} />
+        )}
+      </MapContainer>
+
+      <div className="pointer-events-none absolute right-3 top-3 z-[1000] flex gap-2">
+        <button
+          type="button"
+          onClick={() => setBasemap('calm')}
+          className={`pointer-events-auto rounded-full border px-3 py-2 text-xs font-semibold shadow-[0_12px_30px_rgba(15,23,42,0.12)] transition-colors ${
+            basemap === 'calm'
+              ? 'border-slate-900 bg-slate-900 text-white'
+              : 'border-white/70 bg-white/90 text-slate-700'
+          }`}
+        >
+          Calmo
+        </button>
+        <button
+          type="button"
+          onClick={() => setBasemap('street')}
+          className={`pointer-events-auto rounded-full border px-3 py-2 text-xs font-semibold shadow-[0_12px_30px_rgba(15,23,42,0.12)] transition-colors ${
+            basemap === 'street'
+              ? 'border-slate-900 bg-slate-900 text-white'
+              : 'border-white/70 bg-white/90 text-slate-700'
+          }`}
+        >
+          Detalle
+        </button>
+      </div>
+    </div>
   )
 }

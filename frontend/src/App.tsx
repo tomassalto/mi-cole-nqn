@@ -5,6 +5,8 @@ import ArrivalsPanel from '@/components/Panel/ArrivalsPanel'
 import FavoritesDrawer from '@/components/Drawer/FavoritesDrawer'
 import EtaDialog from '@/components/Dialogs/EtaDialog'
 import ConnectionDialog from '@/components/Dialogs/ConnectionDialog'
+import ShortcutDialog from '@/components/Dialogs/ShortcutDialog'
+import ConsultationOverlay from '@/components/Dialogs/ConsultationOverlay'
 
 export default function App() {
   return (
@@ -16,6 +18,8 @@ export default function App() {
       <ArrivalsPanel />
       <EtaDialog />
       <ConnectionDialog />
+      <ShortcutDialog />
+      <ConsultationOverlay />
     </div>
   )
 }

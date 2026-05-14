@@ -7,11 +7,11 @@ interface BadgeProps {
 
 export default function Badge({ routeCode, size = 'md' }: BadgeProps) {
   const color = routeColor(routeCode)
-  const sizeClass = size === 'sm' ? 'text-xs px-1.5 py-0.5' : 'text-base px-2 py-1'
+  const sizeClass = size === 'sm' ? 'px-2 py-0.5 text-[0.72rem]' : 'px-3 py-1 text-sm'
 
   return (
     <span
-      className={`inline-flex items-center justify-center rounded-xl font-extrabold text-white ${sizeClass}`}
+      className={`inline-flex items-center justify-center rounded-full font-bold tracking-wide text-white shadow-sm ${sizeClass}`}
       style={{ backgroundColor: color }}
     >
       {routeCode}

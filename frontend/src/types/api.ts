@@ -66,9 +66,14 @@ export interface Connection {
   lineATime: string
   lineAMins: number
   lineAPredicted: boolean
+  transferTime: string
+  transferMins: number
+  transferPredicted: boolean
   lineBTime: string
   lineBMins: number
   lineBPredicted: boolean
+  finalTime: string
+  finalMins: number
   waitMins: number
   totalMins: number
   immediate: boolean
@@ -79,6 +84,10 @@ export interface SavedConnection {
   name: string
   origin_stop_id: number
   origin_stop_name: string | null
+  transfer_stop_a_id: number | null
+  transfer_stop_a_name: string | null
+  board_stop_id: number | null
+  board_stop_name: string | null
   dest_stop_id: number
   dest_stop_name: string | null
   line_a_service_id: number
@@ -86,5 +95,17 @@ export interface SavedConnection {
   line_b_service_id: number
   line_b_route_code: string | null
   notifications: number
+  created_at: string
+}
+
+export interface SavedShortcut {
+  id: string
+  name: string
+  line_service_id: number
+  line_route_code: string | null
+  origin_stop_id: number
+  origin_stop_name: string | null
+  dest_stop_id: number
+  dest_stop_name: string | null
   created_at: string
 }

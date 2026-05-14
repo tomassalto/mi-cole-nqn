@@ -25,14 +25,19 @@ export default function EtaDialog() {
   }, [open, uniqueArrivals, selectedServiceId])
 
   useEffect(() => {
-    if (!open) { setDestStop(null); setResult(''); setSelectedServiceId(''); setLoading(false) }
+    if (!open) {
+      setDestStop(null)
+      setResult('')
+      setSelectedServiceId('')
+      setLoading(false)
+    }
   }, [open])
 
   useEffect(() => {
     if (destStop && selectedServiceId && stopId) {
       calculateEta()
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [destStop])
 
   const calculateEta = async () => {
@@ -54,28 +59,31 @@ export default function EtaDialog() {
   }
 
   return (
-    <Modal open={open} onClose={() => setActiveDialog('none')} title="¿A qué hora llego?" className="w-[340px]">
-      <div className="p-4 flex flex-col gap-3">
+    <Modal open={open} onClose={() => setActiveDialog('none')} title="¿A qué hora llego?" className="w-[360px]">
+      <div className="flex flex-col gap-3 p-4">
         <div>
-          <label className="text-sm font-medium block mb-1.5">Línea que tomás:</label>
-          <select value={selectedServiceId} onChange={e => setSelectedServiceId(e.target.value)}
-            className="w-full px-3 py-2 border border-[#e5e7eb] rounded-lg text-sm bg-white">
+          <label className="mb-1.5 block text-sm font-medium text-slate-700">Línea que tomás:</label>
+          <select
+            value={selectedServiceId}
+            onChange={e => setSelectedServiceId(e.target.value)}
+            className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm"
+          >
             {uniqueArrivals.map(a => <option key={a.serviceId} value={a.serviceId}>{a.routeCode} — {a.routeName}</option>)}
           </select>
         </div>
         {etaMode ? (
-          <p className="text-xs text-[#6b7280] bg-blue-50 px-3 py-2.5 rounded-lg">Tocá la <strong>parada de destino</strong> en el mapa.</p>
+          <p className="rounded-2xl bg-emerald-50 px-3 py-2.5 text-xs text-emerald-800">Tocá la <strong>parada de destino</strong> en el mapa.</p>
         ) : loading ? (
-          <p className="text-sm text-[#6b7280]">Calculando…</p>
+          <p className="text-sm text-slate-500">Calculando...</p>
         ) : result ? (
           <div className="text-sm leading-relaxed" dangerouslySetInnerHTML={{ __html: result }} />
         ) : (
-          <p className="text-xs text-[#6b7280] bg-blue-50 px-3 py-2.5 rounded-lg">
+          <p className="rounded-2xl bg-emerald-50 px-3 py-2.5 text-xs text-emerald-800">
             Seleccioná una línea y luego tocá la <strong>parada de destino</strong> en el mapa.
           </p>
         )}
-        {destStop && !result && !loading && <p className="text-xs text-[#6b7280]">Destino: <strong>{destStop.name}</strong></p>}
-        <button onClick={() => setActiveDialog('none')} className="py-2 text-[#6b7280] text-sm text-center">Cancelar</button>
+        {destStop && !result && !loading && <p className="text-xs text-slate-500">Destino: <strong>{destStop.name}</strong></p>}
+        <button onClick={() => setActiveDialog('none')} className="py-2 text-sm text-slate-500">Cancelar</button>
       </div>
     </Modal>
   )

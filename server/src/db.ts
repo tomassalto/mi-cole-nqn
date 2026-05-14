@@ -19,22 +19,80 @@ db.exec(`
 
 db.exec(`
   CREATE TABLE IF NOT EXISTS saved_connections (
-    id              TEXT PRIMARY KEY,
-    name            TEXT NOT NULL,
-    origin_stop_id  INTEGER NOT NULL,
-    origin_stop_name TEXT,
-    dest_stop_id    INTEGER NOT NULL,
-    dest_stop_name  TEXT,
-    line_a_service_id INTEGER NOT NULL,
-    line_a_route_code TEXT,
-    line_b_service_id INTEGER NOT NULL,
-    line_b_route_code TEXT,
-    notifications   INTEGER DEFAULT 0,
-    created_at      TEXT DEFAULT (datetime('now'))
+    id                 TEXT PRIMARY KEY,
+    name               TEXT NOT NULL,
+    origin_stop_id     INTEGER NOT NULL,
+    origin_stop_name   TEXT,
+    transfer_stop_a_id INTEGER,
+    transfer_stop_a_name TEXT,
+    board_stop_id      INTEGER,
+    board_stop_name    TEXT,
+    dest_stop_id       INTEGER NOT NULL,
+    dest_stop_name     TEXT,
+    line_a_service_id  INTEGER NOT NULL,
+    line_a_route_code  TEXT,
+    line_b_service_id  INTEGER NOT NULL,
+    line_b_route_code  TEXT,
+    notifications      INTEGER DEFAULT 0,
+    created_at         TEXT DEFAULT (datetime('now'))
   )
 `)
 
-const cols = db.prepare("PRAGMA table_info(favorites)").all() as Array<{ name: string }>
+db.exec(`
+  CREATE TABLE IF NOT EXISTS saved_shortcuts (
+    id               TEXT PRIMARY KEY,
+    name             TEXT NOT NULL,
+    line_service_id  INTEGER NOT NULL,
+    line_route_code  TEXT,
+    origin_stop_id   INTEGER NOT NULL,
+    origin_stop_name TEXT,
+    dest_stop_id     INTEGER NOT NULL,
+    dest_stop_name   TEXT,
+    created_at       TEXT DEFAULT (datetime('now'))
+  )
+`)
+
+const savedConnectionColumns = new Set(
+  (db.prepare('PRAGMA table_info(saved_connections)').all() as Array<{ name: string }>).map(col => col.name)
+)
+
+if (!savedConnectionColumns.has('transfer_stop_a_id')) {
+  db.exec('ALTER TABLE saved_connections ADD COLUMN transfer_stop_a_id INTEGER')
+}
+if (!savedConnectionColumns.has('transfer_stop_a_name')) {
+  db.exec('ALTER TABLE saved_connections ADD COLUMN transfer_stop_a_name TEXT')
+}
+if (!savedConnectionColumns.has('board_stop_id')) {
+  db.exec('ALTER TABLE saved_connections ADD COLUMN board_stop_id INTEGER')
+}
+if (!savedConnectionColumns.has('board_stop_name')) {
+  db.exec('ALTER TABLE saved_connections ADD COLUMN board_stop_name TEXT')
+}
+
+const shortcutColumns = new Set(
+  (db.prepare('PRAGMA table_info(saved_shortcuts)').all() as Array<{ name: string }>).map(col => col.name)
+)
+
+if (!shortcutColumns.has('line_service_id')) {
+  db.exec('ALTER TABLE saved_shortcuts ADD COLUMN line_service_id INTEGER NOT NULL DEFAULT 0')
+}
+if (!shortcutColumns.has('line_route_code')) {
+  db.exec('ALTER TABLE saved_shortcuts ADD COLUMN line_route_code TEXT')
+}
+if (!shortcutColumns.has('origin_stop_id')) {
+  db.exec('ALTER TABLE saved_shortcuts ADD COLUMN origin_stop_id INTEGER NOT NULL DEFAULT 0')
+}
+if (!shortcutColumns.has('origin_stop_name')) {
+  db.exec('ALTER TABLE saved_shortcuts ADD COLUMN origin_stop_name TEXT')
+}
+if (!shortcutColumns.has('dest_stop_id')) {
+  db.exec('ALTER TABLE saved_shortcuts ADD COLUMN dest_stop_id INTEGER NOT NULL DEFAULT 0')
+}
+if (!shortcutColumns.has('dest_stop_name')) {
+  db.exec('ALTER TABLE saved_shortcuts ADD COLUMN dest_stop_name TEXT')
+}
+
+const cols = db.prepare('PRAGMA table_info(favorites)').all() as Array<{ name: string }>
 const colNames = cols.map(c => c.name)
 
 if (colNames.includes('stop_id') && !colNames.includes('id')) {

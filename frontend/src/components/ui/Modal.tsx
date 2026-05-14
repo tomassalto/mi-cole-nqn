@@ -12,21 +12,21 @@ export default function Modal({ open, onClose, title, children, className = '' }
   return (
     <>
       <div
-        className={`fixed inset-0 bg-black/40 z-[900] transition-opacity duration-250 ${
-          open ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
+        className={`fixed inset-0 z-[900] bg-slate-950/45 backdrop-blur-sm transition-opacity duration-300 ${
+          open ? 'pointer-events-auto opacity-100' : 'pointer-events-none opacity-0'
         }`}
         onClick={onClose}
       />
       <div
-        className={`fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-xl shadow-[0_2px_12px_rgba(0,0,0,0.15)] z-[950] transition-all duration-250 ${
-          open ? 'opacity-100 scale-100 pointer-events-auto' : 'opacity-0 scale-95 pointer-events-none'
+        className={`fixed left-1/2 top-1/2 z-[950] max-h-[calc(100dvh-2rem)] w-[min(92vw,420px)] -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-[28px] border border-white/70 bg-white/90 shadow-[0_32px_90px_rgba(15,23,42,0.22)] backdrop-blur-xl transition-all duration-300 ${
+          open ? 'pointer-events-auto scale-100 opacity-100' : 'pointer-events-none scale-[0.98] opacity-0'
         } ${className}`}
       >
-        <div className="flex items-center justify-between px-4 py-4 border-b border-[#e5e7eb]">
-          <h2 className="text-sm font-semibold">{title}</h2>
+        <div className="flex items-center justify-between border-b border-slate-200/80 px-4 py-4">
+          <h2 className="text-sm font-semibold text-slate-900">{title}</h2>
           <button
             onClick={onClose}
-            className="text-[#6b7280] text-lg hover:bg-[#f5f7fa] rounded-full w-8 h-8 flex items-center justify-center transition-colors"
+            className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-transparent text-slate-500 transition-colors hover:border-slate-200 hover:bg-slate-50 hover:text-slate-900"
           >
             ✕
           </button>

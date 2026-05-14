@@ -24,7 +24,23 @@ function decodePolyline(encoded: string): [number, number][] {
   return coords
 }
 
-type ConnectionCreationStep = 'idle' | 'selectOrigin' | 'selectLineA' | 'selectCombination' | 'selectLineB' | 'selectDest' | 'fillName'
+type ConnectionCreationStep =
+  | 'idle'
+  | 'selectOrigin'
+  | 'selectLineA'
+  | 'selectCombination'
+  | 'selectLineB'
+  | 'selectBoardStop'
+  | 'selectDest'
+  | 'viewSaved'
+  | 'fillName'
+
+type ShortcutCreationStep =
+  | 'idle'
+  | 'selectLine'
+  | 'selectOrigin'
+  | 'selectDest'
+  | 'fillName'
 
 interface ConnectionCreationData {
   originStop: Stop | null
@@ -33,6 +49,14 @@ interface ConnectionCreationData {
   combinationStop: Stop | null
   lineBServiceId: number | null
   lineBRouteCode: string
+  boardStop: Stop | null
+  destStop: Stop | null
+}
+
+interface ShortcutCreationData {
+  lineServiceId: number | null
+  lineRouteCode: string
+  originStop: Stop | null
   destStop: Stop | null
 }
 
@@ -43,26 +67,50 @@ interface MapContextValue {
   routeCoords: [number, number][]
   routeStopIds: Set<number> | null
   etaMode: boolean
-  activeDialog: 'none' | 'eta' | 'connection'
+  activeDialog: 'none' | 'eta' | 'connection' | 'shortcut'
   connectionOrigin: Stop | null
   connectionDest: Stop | null
   connectionCreationStep: ConnectionCreationStep
   connectionCreationData: ConnectionCreationData
+  shortcutCreationStep: ShortcutCreationStep
+  shortcutCreationData: ShortcutCreationData
   selectStop: (stop: Stop | null) => void
   showRoute: (serviceId: number | string) => Promise<void>
   clearRoute: () => void
   updateVehicles: (vehicles: Vehicle[]) => void
   setEtaMode: (active: boolean) => void
-  setActiveDialog: (d: 'none' | 'eta' | 'connection') => void
+  setActiveDialog: (d: 'none' | 'eta' | 'connection' | 'shortcut') => void
   setConnectionOrigin: (s: Stop | null) => void
   setConnectionDest: (s: Stop | null) => void
   startConnectionCreation: () => void
   setConnectionCreationStep: (step: ConnectionCreationStep) => void
   updateConnectionCreationData: (data: Partial<ConnectionCreationData>) => void
   cancelConnectionCreation: () => void
+  startShortcutCreation: () => void
+  setShortcutCreationStep: (step: ShortcutCreationStep) => void
+  updateShortcutCreationData: (data: Partial<ShortcutCreationData>) => void
+  cancelShortcutCreation: () => void
 }
 
 const MapContext = createContext<MapContextValue | null>(null)
+
+const emptyConnectionData = (): ConnectionCreationData => ({
+  originStop: null,
+  lineAServiceId: null,
+  lineARouteCode: '',
+  combinationStop: null,
+  lineBServiceId: null,
+  lineBRouteCode: '',
+  boardStop: null,
+  destStop: null,
+})
+
+const emptyShortcutData = (): ShortcutCreationData => ({
+  lineServiceId: null,
+  lineRouteCode: '',
+  originStop: null,
+  destStop: null,
+})
 
 export function MapProvider({ children }: { children: ReactNode }) {
   const [selectedStop, setSelectedStop] = useState<Stop | null>(null)
@@ -71,19 +119,13 @@ export function MapProvider({ children }: { children: ReactNode }) {
   const [routeCoords, setRouteCoords] = useState<[number, number][] | null>(null)
   const [routeStopIds, setRouteStopIds] = useState<Set<number> | null>(null)
   const [etaMode, setEtaModeState] = useState(false)
-  const [activeDialog, setActiveDialog] = useState<'none' | 'eta' | 'connection'>('none')
+  const [activeDialog, setActiveDialog] = useState<'none' | 'eta' | 'connection' | 'shortcut'>('none')
   const [connectionOrigin, setConnectionOrigin] = useState<Stop | null>(null)
   const [connectionDest, setConnectionDest] = useState<Stop | null>(null)
   const [connectionCreationStep, setConnectionCreationStep] = useState<ConnectionCreationStep>('idle')
-  const [connectionCreationData, setConnectionCreationData] = useState<ConnectionCreationData>({
-    originStop: null,
-    lineAServiceId: null,
-    lineARouteCode: '',
-    combinationStop: null,
-    lineBServiceId: null,
-    lineBRouteCode: '',
-    destStop: null,
-  })
+  const [connectionCreationData, setConnectionCreationData] = useState<ConnectionCreationData>(emptyConnectionData())
+  const [shortcutCreationStep, setShortcutCreationStep] = useState<ShortcutCreationStep>('idle')
+  const [shortcutCreationData, setShortcutCreationData] = useState<ShortcutCreationData>(emptyShortcutData())
 
   useEffect(() => {
     getStopsAll()
@@ -113,15 +155,7 @@ export function MapProvider({ children }: { children: ReactNode }) {
 
   const startConnectionCreation = useCallback(() => {
     setConnectionCreationStep('selectOrigin')
-    setConnectionCreationData({
-      originStop: null,
-      lineAServiceId: null,
-      lineARouteCode: '',
-      combinationStop: null,
-      lineBServiceId: null,
-      lineBRouteCode: '',
-      destStop: null,
-    })
+    setConnectionCreationData(emptyConnectionData())
     setActiveDialog('connection')
   }, [setActiveDialog])
 
@@ -131,15 +165,22 @@ export function MapProvider({ children }: { children: ReactNode }) {
 
   const cancelConnectionCreation = useCallback(() => {
     setConnectionCreationStep('idle')
-    setConnectionCreationData({
-      originStop: null,
-      lineAServiceId: null,
-      lineARouteCode: '',
-      combinationStop: null,
-      lineBServiceId: null,
-      lineBRouteCode: '',
-      destStop: null,
-    })
+    setConnectionCreationData(emptyConnectionData())
+  }, [])
+
+  const startShortcutCreation = useCallback(() => {
+    setShortcutCreationStep('selectOrigin')
+    setShortcutCreationData(emptyShortcutData())
+    setActiveDialog('shortcut')
+  }, [])
+
+  const updateShortcutCreationData = useCallback((data: Partial<ShortcutCreationData>) => {
+    setShortcutCreationData(prev => ({ ...prev, ...data }))
+  }, [])
+
+  const cancelShortcutCreation = useCallback(() => {
+    setShortcutCreationStep('idle')
+    setShortcutCreationData(emptyShortcutData())
   }, [])
 
   return (
@@ -155,6 +196,8 @@ export function MapProvider({ children }: { children: ReactNode }) {
       connectionDest,
       connectionCreationStep,
       connectionCreationData,
+      shortcutCreationStep,
+      shortcutCreationData,
       showRoute,
       clearRoute,
       selectStop,
@@ -167,6 +210,10 @@ export function MapProvider({ children }: { children: ReactNode }) {
       setConnectionCreationStep,
       updateConnectionCreationData,
       cancelConnectionCreation,
+      startShortcutCreation,
+      setShortcutCreationStep,
+      updateShortcutCreationData,
+      cancelShortcutCreation,
     }}>
       {children}
     </MapContext.Provider>
