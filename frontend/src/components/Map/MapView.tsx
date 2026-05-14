@@ -9,21 +9,86 @@ import {
 } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
+import { useApp } from "@/contexts/AppContext";
 import { useMap as useMapCtx } from "@/contexts/MapContext";
 
 const DEFAULT_CENTER: [number, number] = [-38.9516, -68.0591];
 const DEFAULT_ZOOM = 15;
+type ThemeMode = "light" | "dark";
+type BasemapMode = "calm" | "street";
+type TileConfig = {
+  url: string;
+  attribution: string;
+  maxZoom: number;
+  opacity?: number;
+};
 
-function createStopIcon(selected: boolean, heading?: number) {
+const OSM_ATTRIBUTION =
+  '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>';
+const CARTO_ATTRIBUTION =
+  `${OSM_ATTRIBUTION} &copy; <a href="https://carto.com/attributions">CARTO</a>`;
+
+function getTileLayers(theme: ThemeMode, basemap: BasemapMode): TileConfig[] {
+  if (theme === "dark") {
+    if (basemap === "calm") {
+      return [
+        {
+          attribution: CARTO_ATTRIBUTION,
+          url: "https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}{r}.png",
+          maxZoom: 20,
+        },
+        {
+          attribution: CARTO_ATTRIBUTION,
+          url: "https://{s}.basemaps.cartocdn.com/dark_only_labels/{z}/{x}/{y}{r}.png",
+          maxZoom: 20,
+          opacity: 0.72,
+        },
+      ];
+    }
+
+    return [
+      {
+        attribution: CARTO_ATTRIBUTION,
+        url: "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png",
+        maxZoom: 20,
+      },
+    ];
+  }
+
+  if (basemap === "calm") {
+    return [
+      {
+        attribution: CARTO_ATTRIBUTION,
+        url: "https://{s}.basemaps.cartocdn.com/voyager_nolabels/{z}/{x}/{y}{r}.png",
+        maxZoom: 20,
+      },
+      {
+        attribution: CARTO_ATTRIBUTION,
+        url: "https://{s}.basemaps.cartocdn.com/voyager_only_labels/{z}/{x}/{y}{r}.png",
+        maxZoom: 20,
+        opacity: 0.78,
+      },
+    ];
+  }
+
+  return [
+    {
+      attribution: OSM_ATTRIBUTION,
+      url: "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+      maxZoom: 19,
+    },
+  ];
+}
+
+function createStopIcon(selected: boolean, heading?: number, isDark = false) {
   const size = selected ? 18 : 14;
+  const arrowColor = isDark ? '#93c5fd' : '#1d4ed8';
   if (heading != null) {
-    // Contenedor 28x28 que incluye el círculo (centrado) + flecha (borde superior)
-    // El anchor queda en el centro del círculo → offset (14, 14)
     return L.divIcon({
       className: "",
       html: `<div style="width:28px;height:28px;position:relative;display:flex;align-items:center;justify-content:center;">
         <div class="stop-marker${selected ? " selected" : ""}" style="width:${size}px;height:${size}px;"></div>
-        <span style="position:absolute;inset:0;display:flex;align-items:flex-start;justify-content:center;transform:rotate(${heading}deg);font-size:9px;color:#1d4ed8;line-height:1;padding-top:0px;font-weight:bold;">▲</span>
+        <span style="position:absolute;inset:0;display:flex;align-items:flex-start;justify-content:center;transform:rotate(${heading}deg);font-size:9px;color:${arrowColor};line-height:1;padding-top:0px;font-weight:bold;">▲</span>
       </div>`,
       iconSize: [44, 44],
       iconAnchor: [14, 14],
@@ -49,6 +114,23 @@ function createBusIcon(routeCode: string, bearing?: number) {
     iconSize: [24, 38],
     iconAnchor: [12, 38],
   });
+}
+
+/** Lighten a hex color for dark backgrounds. If luminance is below threshold, boost it. */
+function brightenForDark(hex: string): string {
+  const raw = hex.replace('#', '')
+  const r = parseInt(raw.substring(0, 2), 16)
+  const g = parseInt(raw.substring(2, 4), 16)
+  const b = parseInt(raw.substring(4, 6), 16)
+  // Relative luminance (rough)
+  const lum = (0.299 * r + 0.587 * g + 0.114 * b) / 255
+  if (lum > 0.45) return hex // already bright enough
+  // Boost: blend toward white
+  const boost = 0.55
+  const nr = Math.round(r + (255 - r) * boost)
+  const ng = Math.round(g + (255 - g) * boost)
+  const nb = Math.round(b + (255 - b) * boost)
+  return `#${nr.toString(16).padStart(2, '0')}${ng.toString(16).padStart(2, '0')}${nb.toString(16).padStart(2, '0')}`
 }
 
 const MIN_ZOOM_FOR_STOPS = 13;
@@ -103,6 +185,8 @@ export default function MapView() {
   const [basemap, setBasemap] = useState<"calm" | "street">("calm");
   const [mapBounds, setMapBounds] = useState<L.LatLngBounds | null>(null);
   const [mapZoom, setMapZoom] = useState<number>(DEFAULT_ZOOM);
+  const { theme } = useApp();
+  const tileLayers = getTileLayers(theme, basemap);
 
   const handleBoundsChange = useCallback(
     (bounds: L.LatLngBounds, zoom: number) => {
@@ -195,19 +279,15 @@ export default function MapView() {
         zoom={DEFAULT_ZOOM}
         className="absolute inset-0"
       >
-        {basemap === "calm" ? (
+        {tileLayers.map((layer) => (
           <TileLayer
-            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>'
-            url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
-            maxZoom={20}
+            key={`${theme}-${basemap}-${layer.url}`}
+            attribution={layer.attribution}
+            url={layer.url}
+            maxZoom={layer.maxZoom}
+            opacity={layer.opacity}
           />
-        ) : (
-          <TileLayer
-            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-            maxZoom={19}
-          />
-        )}
+        ))}
         <BoundsTracker onBoundsChange={handleBoundsChange} />
         <MapEvents />
         {visibleMarkers.map((stop) => (
@@ -217,6 +297,7 @@ export default function MapView() {
             icon={createStopIcon(
               selectedStop?.id === stop.id,
               routeHeadings?.get(stop.id),
+              theme === 'dark',
             )}
             eventHandlers={{ click: () => handleMarkerClick(stop) }}
           />
@@ -233,9 +314,11 @@ export default function MapView() {
           <Polyline
             positions={routeCoords}
             pathOptions={{
-              color: routeColor ?? "#1565C0",
-              weight: 5,
-              opacity: 0.85,
+              color: theme === "dark"
+                ? brightenForDark(routeColor ?? "#1565C0")
+                : (routeColor ?? "#1565C0"),
+              weight: theme === "dark" ? 6 : 5,
+              opacity: theme === "dark" ? 0.96 : 0.85,
             }}
           />
         )}
