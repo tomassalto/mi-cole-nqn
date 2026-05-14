@@ -14,7 +14,9 @@ import savedConnectionsRouter from './routes/savedConnections'
 import savedShortcutsRouter from './routes/savedShortcuts'
 import etaRouter from './routes/eta'
 import vehiclesRouter from './routes/vehicles'
+import pushRouter from './routes/push'
 import { subscribeVehicles } from './lib/visionblo'
+import { startNotifier } from './lib/notifier'
 
 dotenv.config()
 
@@ -33,6 +35,7 @@ app.use('/api/saved-connections', savedConnectionsRouter)
 app.use('/api/saved-shortcuts', savedShortcutsRouter)
 app.use('/api/eta', etaRouter)
 app.use('/api/vehicles', vehiclesRouter)
+app.use('/api/push', pushRouter)
 
 app.get('/api/health', (_req, res) => {
   res.json({ ok: true, ts: Date.now() })
@@ -76,4 +79,5 @@ wss.on('connection', (ws, req) => {
 
 server.listen(PORT, () => {
   console.log(`MiCole corriendo en http://localhost:${PORT}`)
+  startNotifier()
 })

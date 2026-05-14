@@ -52,6 +52,21 @@ db.exec(`
   )
 `)
 
+db.exec(`
+  CREATE TABLE IF NOT EXISTS push_subscriptions (
+    id                INTEGER PRIMARY KEY AUTOINCREMENT,
+    shortcut_id       TEXT NOT NULL,
+    endpoint          TEXT NOT NULL,
+    p256dh            TEXT NOT NULL,
+    auth              TEXT NOT NULL,
+    minutes_threshold INTEGER NOT NULL DEFAULT 5,
+    last_notified_at  TEXT,
+    created_at        TEXT DEFAULT (datetime('now')),
+    FOREIGN KEY (shortcut_id) REFERENCES saved_shortcuts(id) ON DELETE CASCADE,
+    UNIQUE(shortcut_id, endpoint)
+  )
+`)
+
 const savedConnectionColumns = new Set(
   (db.prepare('PRAGMA table_info(saved_connections)').all() as Array<{ name: string }>).map(col => col.name)
 )
