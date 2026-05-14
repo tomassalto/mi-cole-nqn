@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <!-- Blue background -->
+  <rect width="512" height="512" rx="96" fill="#1565C0"/>
+  <!-- Bus body -->
+  <rect x="96" y="160" width="320" height="220" rx="32" fill="#ffffff"/>
+  <!-- Windows left -->
+  <rect x="120" y="192" width="120" height="80" rx="12" fill="#BBDEFB"/>
+  <!-- Windows right -->
+  <rect x="272" y="192" width="120" height="80" rx="12" fill="#BBDEFB"/>
+  <!-- Front stripe -->
+  <rect x="96" y="290" width="320" height="16" fill="#1565C0" opacity="0.2"/>
+  <!-- Wheel left -->
+  <circle cx="160" cy="390" r="44" fill="#1565C0"/>
+  <circle cx="160" cy="390" r="24" fill="#ffffff"/>
+  <!-- Wheel right -->
+  <circle cx="352" cy="390" r="44" fill="#1565C0"/>
+  <circle cx="352" cy="390" r="24" fill="#ffffff"/>
+  <!-- Door -->
+  <rect x="220" y="240" width="72" height="90" rx="8" fill="#BBDEFB"/>
+</svg>
