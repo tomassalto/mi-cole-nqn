@@ -75,6 +75,6 @@ export function normalizeArrivals(data: VisionbloArrivalsResponse): Arrival[] {
         statusLabel: status.label,
       } satisfies Arrival
     })
-    .filter(a => a.minutesUntil <= 120)
+    .filter(a => a.minutesUntil <= 300)
     .sort((a, b) => a.minutesUntil - b.minutesUntil)
 }
