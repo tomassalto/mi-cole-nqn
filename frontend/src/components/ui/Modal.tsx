@@ -18,15 +18,15 @@ export default function Modal({ open, onClose, title, children, className = '' }
         onClick={onClose}
       />
       <div
-        className={`fixed left-1/2 top-1/2 z-[950] max-h-[calc(100dvh-2rem)] w-[min(92vw,420px)] -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-[28px] border border-white/70 bg-white/90 shadow-[0_32px_90px_rgba(15,23,42,0.22)] backdrop-blur-xl transition-all duration-300 ${
+        className={`fixed left-1/2 top-1/2 z-[950] max-h-[calc(100dvh-2rem)] w-[min(92vw,420px)] -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-[28px] border border-white/70 bg-white/90 shadow-[0_32px_90px_rgba(15,23,42,0.22)] backdrop-blur-xl transition-all duration-300 dark:border-slate-700/70 dark:bg-slate-900/95 dark:shadow-[0_32px_90px_rgba(0,0,0,0.50)] lg:w-[min(92vw,560px)] xl:w-[min(92vw,640px)] ${
           open ? 'pointer-events-auto scale-100 opacity-100' : 'pointer-events-none scale-[0.98] opacity-0'
         } ${className}`}
       >
-        <div className="flex items-center justify-between border-b border-slate-200/80 px-4 py-4">
-          <h2 className="text-sm font-semibold text-slate-900">{title}</h2>
+        <div className="flex items-center justify-between border-b border-slate-200/80 px-4 py-4 dark:border-slate-700/80 lg:px-5 lg:py-5">
+          <h2 className="text-sm font-semibold text-slate-900 dark:text-slate-100 lg:text-base">{title}</h2>
           <button
             onClick={onClose}
-            className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-transparent text-slate-500 transition-colors hover:border-slate-200 hover:bg-slate-50 hover:text-slate-900"
+            className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-transparent text-slate-500 transition-colors hover:border-slate-200 hover:bg-slate-50 hover:text-slate-900 dark:text-slate-400 dark:hover:border-slate-600 dark:hover:bg-slate-800 dark:hover:text-slate-100"
           >
             ✕
           </button>

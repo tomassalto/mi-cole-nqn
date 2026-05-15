@@ -1,6 +1,11 @@
 @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700;800&display=swap');
 @import "tailwindcss";
 
+@keyframes menuIn {
+  from { opacity: 0; transform: scale(0.95) translateY(-4px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+
 :root {
   --bg: #f6f3ee;
   --bg-alt: #edf3f7;
