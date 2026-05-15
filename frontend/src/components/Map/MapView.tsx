@@ -7,8 +7,8 @@ import Map, {
   AttributionControl,
   GeolocateControl,
 } from "react-map-gl/maplibre";
-import type { MapRef } from "react-map-gl/maplibre";
-import type { StyleSpecification } from "maplibre-gl";
+import type { MapRef, MapLayerMouseEvent } from "react-map-gl/maplibre";
+import type { StyleSpecification, GeoJSONSource } from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 import { useApp } from "@/contexts/AppContext";
 import { useMap as useMapCtx } from "@/contexts/MapContext";
@@ -367,7 +367,19 @@ export default function MapView() {
   const visibleVehicles =
     routeCoords.length > 0 || mapZoom >= MIN_ZOOM_FOR_VEHICLES ? vehicles : [];
 
-  // GeoJSON for route polyline (coords are [lat,lon] in context → [lon,lat] for GeoJSON)
+  // Clustered stops: all stops as a single GeoJSON source
+  const stopsGeoJSON = useMemo(() => {
+    return {
+      type: "FeatureCollection" as const,
+      features: stops.map((s) => ({
+        type: "Feature" as const,
+        properties: { id: s.id, name: s.name, code: s.code },
+        geometry: { type: "Point" as const, coordinates: [s.lon, s.lat] as [number, number] },
+      })),
+    };
+  }, [stops]);
+
+  // Route polyline GeoJSON
   const routeGeoJSON = useMemo(() => {
     if (!routeCoords || routeCoords.length === 0) return null;
     return {
@@ -379,6 +391,52 @@ export default function MapView() {
       },
     };
   }, [routeCoords]);
+
+  // Handle map clicks: clusters → zoom in, unclustered points → select stop
+  const handleMapClick = (e: MapLayerMouseEvent) => {
+    const feature = e.features?.[0];
+    if (!feature || !feature.properties) return;
+    const layerId = (feature.layer?.id as string | undefined);
+
+    if (layerId === "clusters") {
+      const clusterId = feature.properties.cluster_id as number;
+      const source = mapRef.current?.getSource("stops-clustered") as GeoJSONSource | undefined;
+      if (!source) return;
+      const geometry = feature.geometry as { type: 'Point'; coordinates: [number, number] };
+      // @ts-expect-error: getClusterExpansionZoom has callback overload
+      source.getClusterExpansionZoom(clusterId, (err: unknown, zoom: number) => {
+        if (err || zoom == null) return;
+        mapRef.current?.flyTo({
+          center: [geometry.coordinates[0], geometry.coordinates[1]],
+          zoom: zoom + 1,
+          duration: 600,
+        });
+      });
+    } else if (layerId === "unclustered-point") {
+      const stopId = feature.properties.id as number;
+      const stop = stops.find((s) => s.id === stopId);
+      if (stop) handleMarkerClick(stop);
+    }
+  };
+
+  const clusterPaint = useMemo(() => ({
+    "circle-color": theme === "dark" ? "#3b82f6" : "#6366f1",
+    "circle-radius": ["step", ["get", "point_count"], 14, 5, 18, 15, 24, 50, 30] as unknown as number,
+    "circle-opacity": 0.9,
+    "circle-stroke-width": 2,
+    "circle-stroke-color": theme === "dark" ? "#1e293b" : "#ffffff",
+  }), [theme]);
+
+  const clusterCountPaint = useMemo(() => ({
+    "text-color": "#ffffff",
+  }), []);
+
+  const unclusteredPaint = useMemo(() => ({
+    "circle-color": theme === "dark" ? "#60a5fa" : "#4f46e5",
+    "circle-radius": 5,
+    "circle-stroke-width": 2,
+    "circle-stroke-color": theme === "dark" ? "#1e293b" : "#ffffff",
+  }), [theme]);
 
   const lineColor =
     theme === "dark"
@@ -399,6 +457,8 @@ export default function MapView() {
         mapStyle={mapStyle}
         style={{ width: "100%", height: "100%" }}
         cursor={etaMode ? "crosshair" : undefined}
+        interactiveLayerIds={["clusters", "unclustered-point"]}
+        onClick={handleMapClick}
         onMoveEnd={syncBounds}
         onLoad={syncBounds}
         attributionControl={false}
@@ -411,8 +471,60 @@ export default function MapView() {
         />
         <AttributionControl compact />
 
-        {/* Stop markers */}
-        {visibleMarkers.map((stop) => (
+        {/* Stop markers — clustered source */}
+        <Source
+          id="stops-clustered"
+          type="geojson"
+          data={stopsGeoJSON}
+          cluster={true}
+          clusterMaxZoom={14}
+          clusterRadius={80}
+        >
+          {/* Cluster circles */}
+          <Layer
+            id="clusters"
+            type="circle"
+            source="stops-clustered"
+            filter={["has", "point_count"]}
+            paint={clusterPaint}
+        />
+          {/* Cluster count labels */}
+          <Layer
+            id="cluster-count"
+            type="symbol"
+            source="stops-clustered"
+            filter={["has", "point_count"]}
+            layout={{
+              "text-field": "{point_count_abbreviated}",
+              "text-font": ["Open Sans Bold", "Arial Unicode MS Bold"],
+              "text-size": 13,
+            }}
+            paint={clusterCountPaint}
+          />
+          {/* Unclustered points (individual stops at high zoom) */}
+          <Layer
+            id="unclustered-point"
+            type="circle"
+            source="stops-clustered"
+            filter={["!", ["has", "point_count"]]}
+            paint={unclusteredPaint}
+          />
+        </Source>
+
+        {/* Individual Marker for selected stop */}
+        {selectedStop && (
+          <Marker
+            key={`selected-${selectedStop.id}`}
+            longitude={selectedStop.lon}
+            latitude={selectedStop.lat}
+            anchor="center"
+          >
+            <StopMarkerContent selected heading={routeHeadings?.get(selectedStop.id)} isDark={theme === "dark"} />
+          </Marker>
+        )}
+
+        {/* Individual Markers for route stops (when showing a route) */}
+        {routeStopIds && visibleMarkers.filter(s => s.id !== selectedStop?.id).map((stop) => (
           <Marker
             key={stop.id}
             longitude={stop.lon}
@@ -424,7 +536,7 @@ export default function MapView() {
             }}
           >
             <StopMarkerContent
-              selected={selectedStop?.id === stop.id}
+              selected={false}
               heading={routeHeadings?.get(stop.id)}
               isDark={theme === "dark"}
             />
