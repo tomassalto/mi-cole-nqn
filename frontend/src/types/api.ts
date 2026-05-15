@@ -111,3 +111,11 @@ export interface SavedShortcut {
   dest_stop_name: string | null
   created_at: string
 }
+
+export interface ShortcutTrip {
+  departureTime: string
+  departureMins: number
+  arrivalTime: string
+  arrivalMins: number
+  predicted: boolean
+}

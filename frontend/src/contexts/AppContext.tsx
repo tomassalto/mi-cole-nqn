@@ -48,7 +48,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       const conns = await getSavedConnections()
       setSavedConnections(conns)
     } catch (e) {
-      console.error('Error loading saved connections:', e)
+      // connection loading error handled silently
     }
   }, [])
 
@@ -57,7 +57,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       const shortcuts = await getSavedShortcuts()
       setSavedShortcuts(shortcuts)
     } catch (e) {
-      console.error('Error loading saved shortcuts:', e)
+      // shortcut loading error handled silently
     }
   }, [])
 
