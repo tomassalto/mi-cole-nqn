@@ -18,6 +18,7 @@ export default function ArrivalsPanel() {
     routeStopIds,
     setActiveDialog,
     updateVehicles,
+    stops,
   } = useMapCtx();
   const { openConsultation } = useApp();
   const {
@@ -37,6 +38,7 @@ export default function ArrivalsPanel() {
   const { stops: scheduleStops } = useSchedule(
     selectedTripId,
     selectedStop ? Number(selectedStop.id) : null,
+    stops,
   );
   const arrivalLookup = useMemo(() => {
     const map = new Map<string, { routeCode: string; routeName: string }>();
@@ -88,9 +90,9 @@ export default function ArrivalsPanel() {
 
     const syncSnapshot = () => {
       if (cancelled) return;
-      // Only push vehicles that have received a position (lat !== 0)
+      // Only push vehicles that have a position and a known route
       const withPosition = [...baseVehicles.values()].filter(
-        (v) => v.lat !== 0 && v.lon !== 0,
+        (v) => v.lat !== 0 && v.lon !== 0 && v.routeCode !== "",
       );
       updateVehicles(withPosition);
     };
