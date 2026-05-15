@@ -8,7 +8,8 @@ import {
   type ReactNode
 } from 'react'
 import type { Stop, Vehicle, RouteShape } from '@/types/api'
-import { getStopsAll, getRouteShape } from '@/services/stops'
+import { getStopsAll } from '@/services/stops'
+import { getRouteShape } from '@/services/routes'
 
 function computeBearing(lat1: number, lon1: number, lat2: number, lon2: number): number {
   const toRad = (d: number) => d * Math.PI / 180
@@ -42,6 +43,7 @@ type ConnectionCreationStep =
   | 'selectBoardStop'
   | 'selectDest'
   | 'viewSaved'
+  | 'editStops'
   | 'fillName'
 
 type ShortcutCreationStep =
@@ -143,8 +145,8 @@ export function MapProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     getStopsAll()
-      .then(s => { console.log('[MapContext] stops loaded:', s.length); stopsRef.current = s; setStops(s) })
-      .catch(err => { console.error('[MapContext] stops error:', err); setStops([]) })
+      .then(s => { stopsRef.current = s; setStops(s) })
+      .catch(() => { setStops([]) })
   }, [])
 
   const showRoute = useCallback(async (serviceId: number | string) => {

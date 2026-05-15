@@ -96,6 +96,7 @@ export async function calculateConnections(
   }
 
   return connections
+    .filter(c => c.waitMins >= 2) // mínimo 2 min de espera para no perder la combinación
     .sort((a, b) => (a.waitMins - b.waitMins) || (a.totalMins - b.totalMins))
     .slice(0, 10)
 }
