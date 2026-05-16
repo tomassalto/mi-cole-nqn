@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { useMap as useMapCtx } from '@/contexts/MapContext'
 import { useApp } from '@/contexts/AppContext'
+import { useAuth } from '@/contexts/AuthContext'
 import { useToast } from '@/contexts/ToastContext'
 import Modal from '@/components/ui/Modal'
 import Badge from '@/components/ui/Badge'
@@ -24,6 +25,7 @@ export default function ConnectionDialog() {
     showRoute,
   } = useMapCtx()
   const { savedConnections, refreshSavedConnections } = useApp()
+  const { requireAuth } = useAuth()
   const { show } = useToast()
   const [availableLinesA, setAvailableLinesA] = useState<StopLine[]>([])
   const [availableLinesB, setAvailableLinesB] = useState<StopLine[]>([])
@@ -82,22 +84,22 @@ export default function ConnectionDialog() {
   }, [connectionCreationStep, connectionCreationData.originStop, show, setConnectionCreationStep])
 
   useEffect(() => {
-    if (connectionCreationStep === 'selectLineB' && connectionCreationData.combinationStop) {
-      getAvailableLines(Number(connectionCreationData.combinationStop.id))
+    if (connectionCreationStep === 'selectLineB' && connectionCreationData.boardStop) {
+      getAvailableLines(Number(connectionCreationData.boardStop.id))
         .then(lines => {
           if (lines.length === 0) {
             show('No hay líneas en esta parada')
-            setConnectionCreationStep(editModeRef.current ? 'editStops' : 'selectCombination')
+            setConnectionCreationStep(editModeRef.current ? 'editStops' : 'selectBoardStop')
           } else {
             setAvailableLinesB(lines)
           }
         })
         .catch(() => {
           show('Error obteniendo líneas')
-          setConnectionCreationStep(editModeRef.current ? 'editStops' : 'selectCombination')
+          setConnectionCreationStep(editModeRef.current ? 'editStops' : 'selectBoardStop')
         })
     }
-  }, [connectionCreationStep, connectionCreationData.combinationStop, show, setConnectionCreationStep])
+  }, [connectionCreationStep, connectionCreationData.boardStop, show, setConnectionCreationStep])
 
   useEffect(() => {
     if (
@@ -154,6 +156,8 @@ export default function ConnectionDialog() {
       !connectionCreationData.lineAServiceId ||
       !connectionCreationData.lineBServiceId
     ) return
+
+    if (!requireAuth(() => handleSaveConnection())) return
 
     setSaving(true)
     try {
@@ -291,7 +295,7 @@ export default function ConnectionDialog() {
             {isPodium ? (
               <span className="text-lg leading-none">{colors.icon}</span>
             ) : (
-              <span className="flex h-5 w-5 items-center justify-center rounded-full bg-slate-200 text-[10px] font-bold text-slate-500 dark:bg-slate-700 dark:text-slate-400">
+              <span className="flex h-5 w-5 items-center justify-center rounded-full bg-slate-200 text-[10px] lg:text-[11px] fullhd:text-xs 2k:text-sm font-bold text-slate-500 dark:bg-slate-700 dark:text-slate-400">
                 {index + 1}
               </span>
             )}
@@ -333,7 +337,7 @@ export default function ConnectionDialog() {
             </div>
             <div className="flex h-6 items-center gap-1.5 lg:h-7">
               <span className="text-amber-500">⇄</span>
-              <span className="text-[10px] font-medium text-amber-600 dark:text-amber-400">
+              <span className="text-[10px] lg:text-[11px] fullhd:text-xs 2k:text-sm font-medium text-amber-600 dark:text-amber-400">
                 Transbordo · {conn.waitMins} min
               </span>
             </div>
@@ -351,7 +355,7 @@ export default function ConnectionDialog() {
 
         {/* Wait bar */}
         <div className="mt-2.5 flex items-center gap-2">
-          <span className="text-[10px] text-slate-400">Espera</span>
+          <span className="text-[10px] lg:text-[11px] fullhd:text-xs 2k:text-sm text-slate-400">Espera</span>
           <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-slate-200 dark:bg-slate-700">
             <div
               className="h-full rounded-full transition-all"
@@ -361,7 +365,7 @@ export default function ConnectionDialog() {
               }}
             />
           </div>
-          <span className="text-[10px] font-medium text-slate-500 dark:text-slate-400">
+          <span className="text-[10px] lg:text-[11px] fullhd:text-xs 2k:text-sm font-medium text-slate-500 dark:text-slate-400">
             {conn.totalMins} min total
           </span>
         </div>
@@ -501,30 +505,30 @@ export default function ConnectionDialog() {
       )
     }
 
-    if (connectionCreationStep === 'selectLineB') {
+    if (connectionCreationStep === 'selectBoardStop') {
       return (
         <div>
-          {infoBox('Bajada línea A', connectionCreationData.combinationStop?.name ?? null)}
-          <p className="mb-2 mt-4 text-sm font-medium text-slate-900 dark:text-slate-100 lg:text-base">¿Qué línea tomás después?</p>
-          <div className="flex max-h-48 flex-col gap-2 overflow-y-auto lg:max-h-64">
-            {availableLinesB.map(line =>
-              lineButton(line, async () => {
-                updateConnectionCreationData({ lineBServiceId: line.serviceId, lineBRouteCode: line.routeCode })
-                await showRoute(line.serviceId)
-                setConnectionCreationStep(editModeRef.current ? 'editStops' : 'selectBoardStop')
-              })
-            )}
-          </div>
+          {stopPicker('Subida línea B', connectionCreationData.boardStop?.name ?? null, 'selectBoardStop', 'Tocá para elegir dónde subís a la segunda línea')}
           {backLink(() => setConnectionCreationStep(backTarget('selectCombination') as never))}
         </div>
       )
     }
 
-    if (connectionCreationStep === 'selectBoardStop') {
+    if (connectionCreationStep === 'selectLineB') {
       return (
         <div>
-          {stopPicker('Subida línea B', connectionCreationData.boardStop?.name ?? null, 'selectBoardStop', 'Tocá para elegir dónde subís a la segunda línea')}
-          {backLink(() => setConnectionCreationStep(backTarget('selectLineB') as never))}
+          {infoBox('Subida línea B', connectionCreationData.boardStop?.name ?? null)}
+          <p className="mb-2 mt-4 text-sm font-medium text-slate-900 dark:text-slate-100 lg:text-base">¿Qué línea tomás?</p>
+          <div className="flex max-h-48 flex-col gap-2 overflow-y-auto lg:max-h-64">
+            {availableLinesB.map(line =>
+              lineButton(line, async () => {
+                updateConnectionCreationData({ lineBServiceId: line.serviceId, lineBRouteCode: line.routeCode })
+                await showRoute(line.serviceId)
+                setConnectionCreationStep(editModeRef.current ? 'editStops' : 'selectDest')
+              })
+            )}
+          </div>
+          {backLink(() => setConnectionCreationStep(backTarget('selectBoardStop') as never))}
         </div>
       )
     }
@@ -546,7 +550,7 @@ export default function ConnectionDialog() {
             ) : (
               <>
                 {primaryBtn('Guardar conexión', () => setConnectionCreationStep('fillName'), !connectionCreationData.destStop)}
-                {secondaryBtn('Volver', () => setConnectionCreationStep('selectBoardStop'))}
+                {secondaryBtn('Volver', () => setConnectionCreationStep('selectLineB'))}
               </>
             )}
           </div>
