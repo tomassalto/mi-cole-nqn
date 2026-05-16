@@ -24,17 +24,17 @@ export default function DashboardShortcutCard({
       <div className="mb-2 flex items-center justify-between gap-2">
         <div className="flex items-center gap-1.5 min-w-0">
           <span className="text-lg leading-none lg:text-xl">⚡</span>
-          <span className="truncate text-sm font-semibold text-slate-900 dark:text-slate-100 lg:text-base">
+          <span className="truncate text-sm font-semibold text-slate-900 dark:text-slate-100 lg:text-base fullhd:text-lg 2k:text-xl">
             {shortcut.name}
           </span>
         </div>
-        <span className="shrink-0 rounded-md bg-emerald-100 px-2 py-0.5 text-[10px] font-bold text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-400">
+        <span className="shrink-0 rounded-md bg-emerald-100 px-2 py-0.5 text-[10px] lg:text-[11px] fullhd:text-xs 2k:text-sm font-bold text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-400">
           {shortcut.line_route_code}
         </span>
       </div>
 
       {/* Route info */}
-      <p className="mb-3 truncate text-xs text-slate-500 dark:text-slate-400">
+      <p className="mb-3 truncate text-xs lg:text-sm fullhd:text-base 2k:text-lg text-slate-500 dark:text-slate-400">
         {shortcut.origin_stop_name ?? 'Origen'} →{' '}
         {shortcut.dest_stop_name ?? 'Destino'}
       </p>
@@ -63,7 +63,7 @@ export default function DashboardShortcutCard({
       {!loading && topTrips.length > 0 && (
         <div className="space-y-2">
           {/* Column headers */}
-          <div className="flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.12em] text-slate-400 dark:text-slate-500">
+          <div className="flex items-center gap-2 text-[10px] lg:text-[11px] fullhd:text-xs 2k:text-sm font-semibold uppercase tracking-[0.12em] text-slate-400 dark:text-slate-500">
             <span className="w-[68px]">Subida</span>
             <span className="flex-1 text-center">→</span>
             <span className="w-[68px] text-right">Bajada</span>
@@ -74,7 +74,7 @@ export default function DashboardShortcutCard({
             return (
               <div
                 key={i}
-                className={`flex items-center gap-2 rounded-xl px-2.5 py-2 text-xs ${
+                className={`flex items-center gap-2 rounded-xl px-2.5 py-2 text-xs lg:text-sm fullhd:text-base 2k:text-lg ${
                   i === 0
                     ? 'bg-slate-100 font-medium dark:bg-slate-700/50'
                     : 'text-slate-600 dark:text-slate-400'
@@ -100,7 +100,7 @@ export default function DashboardShortcutCard({
                     <path d="M8 1L1 8h5v7h4V8h5L8 1z" />
                   </svg>
                   {trip.predicted && (
-                    <span className="ml-1 text-[9px] text-emerald-500" title="Tiempo estimado">~</span>
+                    <span className="ml-1 text-[9px] lg:text-[10px] fullhd:text-[11px] 2k:text-xs text-emerald-500" title="Tiempo estimado">~</span>
                   )}
                 </div>
 

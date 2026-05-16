@@ -1,6 +1,12 @@
 @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700;800&display=swap');
 @import "tailwindcss";
 
+@theme {
+  --breakpoint-mac: 90rem;      /* 1440px */
+  --breakpoint-fullhd: 120rem;  /* 1920px */
+  --breakpoint-2k: 160rem;      /* 2560px */
+}
+
 @keyframes menuIn {
   from { opacity: 0; transform: scale(0.95) translateY(-4px); }
   to { opacity: 1; transform: scale(1) translateY(0); }
@@ -79,6 +85,8 @@ body::before {
 }
 
 .bus-arrival-marker {
+  width: 28px;
+  min-height: 40px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -215,4 +223,46 @@ body::before {
   background: rgba(10, 10, 10, 0.92);
   color: #ffffff;
   border-color: rgba(255, 255, 255, 0.25);
+}
+
+/* ── Large screen marker scaling ──────────────────────────────────────────── */
+
+.stop-marker-wrapper {
+  width: 28px;
+  height: 28px;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.stop-marker-arrow {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  font-size: 9px;
+  line-height: 1;
+  font-weight: bold;
+}
+
+@media (min-width: 1920px) {
+  .stop-marker { width: 18px; height: 18px; border-width: 3px; }
+  .stop-marker.selected { width: 24px; height: 24px; }
+  .stop-marker-wrapper { width: 36px; height: 36px; }
+  .stop-marker-arrow { font-size: 11px; }
+  .bus-arrival-marker { width: 36px; min-height: 50px; }
+  .bam-svg { width: 30px; height: 30px; }
+  .bam-route-code { font-size: 0.8rem; padding: 2px 6px; }
+}
+
+@media (min-width: 2560px) {
+  .stop-marker { width: 22px; height: 22px; border-width: 3.5px; }
+  .stop-marker.selected { width: 28px; height: 28px; }
+  .stop-marker-wrapper { width: 44px; height: 44px; }
+  .stop-marker-arrow { font-size: 13px; }
+  .bus-arrival-marker { width: 44px; min-height: 60px; }
+  .bam-svg { width: 36px; height: 36px; }
+  .bam-route-code { font-size: 0.95rem; padding: 2px 8px; }
 }

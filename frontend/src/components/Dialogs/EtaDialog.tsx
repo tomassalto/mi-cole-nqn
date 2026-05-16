@@ -5,11 +5,20 @@ import Modal from '@/components/ui/Modal'
 import { getEta } from '@/services/eta'
 import type { Stop } from '@/types/api'
 
+interface EtaResult {
+  type: 'success' | 'error'
+  routeCode?: string
+  arrivalText?: string
+  reachingText?: string
+  destName?: string
+  errorText?: string
+}
+
 export default function EtaDialog() {
   const { etaMode, activeDialog, setActiveDialog, selectedStop } = useMapCtx()
   const [destStop, setDestStop] = useState<Stop | null>(null)
   const [selectedServiceId, setSelectedServiceId] = useState<string>('')
-  const [result, setResult] = useState<string>('')
+  const [result, setResult] = useState<EtaResult | null>(null)
   const [loading, setLoading] = useState(false)
 
   const stopId = selectedStop ? Number(selectedStop.id) : null
@@ -27,7 +36,7 @@ export default function EtaDialog() {
   useEffect(() => {
     if (!open) {
       setDestStop(null)
-      setResult('')
+      setResult(null)
       setSelectedServiceId('')
       setLoading(false)
     }
@@ -45,45 +54,90 @@ export default function EtaDialog() {
     setLoading(true)
     try {
       const eta = await getEta(stopId, Number(destStop.id), Number(selectedServiceId))
-      if (eta.error) { setResult(`<p class="text-red-600">${eta.error}</p>`); return }
-      const arrival = eta.minutesToFrom <= 0 ? '<strong>ya está llegando</strong>' : `llega en <strong>${eta.minutesToFrom} min</strong>`
-      const reaching = eta.minutesToDest != null
-        ? `Llegás a <strong>${destStop.name}</strong> en aprox. <strong>${eta.minutesToFrom + eta.minutesToDest} min</strong>.`
-        : `El colectivo ${arrival} a tu parada.`
-      setResult(`<p>El <strong>${eta.routeCode}</strong> ${arrival}.</p><p>${reaching}</p>`)
+      if (eta.error) {
+        setResult({ type: 'error', errorText: eta.error })
+        return
+      }
+      const arrivalText = eta.minutesToFrom <= 0
+        ? 'ya está llegando'
+        : `llega en ${eta.minutesToFrom} min`
+      const reachingText = eta.minutesToDest != null
+        ? `Llegás a ${destStop.name} en aprox. ${eta.minutesToFrom + eta.minutesToDest} min.`
+        : `El colectivo ${arrivalText} a tu parada.`
+      setResult({
+        type: 'success',
+        routeCode: eta.routeCode,
+        arrivalText,
+        reachingText,
+        destName: destStop.name,
+      })
     } catch (err) {
-      setResult(`<p class="text-red-600">${(err as Error).message}</p>`)
+      setResult({ type: 'error', errorText: (err as Error).message })
     } finally {
       setLoading(false)
     }
   }
 
   return (
-    <Modal open={open} onClose={() => setActiveDialog('none')} title="¿A qué hora llego?" className="w-[360px]">
-      <div className="flex flex-col gap-3 p-4">
+    <Modal
+      open={open}
+      onClose={() => setActiveDialog('none')}
+      title="¿A qué hora llego?"
+      className="w-[360px] lg:w-[420px] fullhd:w-[480px]"
+    >
+      <div className="flex flex-col gap-3 p-4 lg:p-5">
         <div>
-          <label className="mb-1.5 block text-sm font-medium text-slate-700">Línea que tomás:</label>
+          <label className="mb-1.5 block text-sm fullhd:text-base font-medium text-slate-700 dark:text-slate-300">
+            Línea que tomás:
+          </label>
           <select
             value={selectedServiceId}
             onChange={e => setSelectedServiceId(e.target.value)}
-            className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm"
+            className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm fullhd:text-base dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100"
           >
-            {uniqueArrivals.map(a => <option key={a.serviceId} value={a.serviceId}>{a.routeCode} — {a.routeName}</option>)}
+            {uniqueArrivals.map(a => (
+              <option key={a.serviceId} value={a.serviceId}>
+                {a.routeCode} — {a.routeName}
+              </option>
+            ))}
           </select>
         </div>
+
         {etaMode ? (
-          <p className="rounded-2xl bg-emerald-50 px-3 py-2.5 text-xs text-emerald-800">Tocá la <strong>parada de destino</strong> en el mapa.</p>
+          <p className="rounded-2xl bg-emerald-50 px-3 py-2.5 text-xs fullhd:text-sm text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-300">
+            Tocá la <strong>parada de destino</strong> en el mapa.
+          </p>
         ) : loading ? (
-          <p className="text-sm text-slate-500">Calculando...</p>
+          <p className="text-sm fullhd:text-base text-slate-500 dark:text-slate-400">Calculando...</p>
         ) : result ? (
-          <div className="text-sm leading-relaxed" dangerouslySetInnerHTML={{ __html: result }} />
+          result.type === 'error' ? (
+            <p className="text-sm fullhd:text-base text-red-600 dark:text-red-400">{result.errorText}</p>
+          ) : (
+            <div className="space-y-1 text-sm fullhd:text-base leading-relaxed text-slate-900 dark:text-slate-200">
+              <p>
+                El <strong>{result.routeCode}</strong> {result.arrivalText}.
+              </p>
+              <p>{result.reachingText}</p>
+            </div>
+          )
         ) : (
-          <p className="rounded-2xl bg-emerald-50 px-3 py-2.5 text-xs text-emerald-800">
+          <p className="rounded-2xl bg-emerald-50 px-3 py-2.5 text-xs fullhd:text-sm text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-300">
             Seleccioná una línea y luego tocá la <strong>parada de destino</strong> en el mapa.
           </p>
         )}
-        {destStop && !result && !loading && <p className="text-xs text-slate-500">Destino: <strong>{destStop.name}</strong></p>}
-        <button onClick={() => setActiveDialog('none')} className="py-2 text-sm text-slate-500">Cancelar</button>
+
+        {destStop && !result && !loading && (
+          <p className="text-xs fullhd:text-sm text-slate-500 dark:text-slate-400">
+            Destino: <strong>{destStop.name}</strong>
+          </p>
+        )}
+
+        <button
+          onClick={() => setActiveDialog('none')}
+          className="py-2 text-sm fullhd:text-base text-slate-500 transition-colors hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200"
+        >
+          Cancelar
+        </button>
       </div>
     </Modal>
   )

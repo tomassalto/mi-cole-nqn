@@ -25,7 +25,7 @@ function ConnectionOptionRow({ opt, conn, index }: { opt: Connection; conn: Save
           {podiumIcon ? (
             <span className="text-sm leading-none">{podiumIcon}</span>
           ) : (
-            <span className="flex h-4 w-4 items-center justify-center rounded-full bg-slate-200 text-[9px] font-bold text-slate-500 dark:bg-slate-700 dark:text-slate-400">
+            <span className="flex h-4 w-4 items-center justify-center rounded-full bg-slate-200 text-[9px] lg:text-[10px] fullhd:text-[11px] 2k:text-xs font-bold text-slate-500 dark:bg-slate-700 dark:text-slate-400">
               {index + 1}
             </span>
           )}
@@ -34,7 +34,7 @@ function ConnectionOptionRow({ opt, conn, index }: { opt: Connection; conn: Save
           </span>
         </div>
         <div className="flex items-center gap-2">
-          <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-bold ${
+          <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] lg:text-[11px] fullhd:text-xs 2k:text-sm font-bold ${
             opt.waitMins <= 5
               ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-400'
               : opt.waitMins <= 10
@@ -43,7 +43,7 @@ function ConnectionOptionRow({ opt, conn, index }: { opt: Connection; conn: Save
           }`}>
             {opt.waitMins} min espera
           </span>
-          <span className="text-[10px] font-medium text-slate-400">
+          <span className="text-[10px] lg:text-[11px] fullhd:text-xs 2k:text-sm font-medium text-slate-400">
             {opt.totalMins} min total
           </span>
         </div>
@@ -65,10 +65,10 @@ function StopTimeline({
   conn: SavedConnection
   compact?: boolean
 }) {
-  const textSize = compact ? 'text-[11px]' : 'text-xs lg:text-sm'
-  const dotSize = compact ? 'h-2 w-2' : 'h-2.5 w-2.5 lg:h-3 lg:w-3'
-  const lineH = compact ? 'h-4' : 'h-5 lg:h-6'
-  const gap = compact ? 'gap-1' : 'gap-1.5 lg:gap-2'
+  const textSize = compact ? 'text-[11px] lg:text-xs fullhd:text-sm 2k:text-base' : 'text-xs lg:text-sm fullhd:text-base 2k:text-lg'
+  const dotSize = compact ? 'h-2 w-2 fullhd:h-2.5 fullhd:w-2.5' : 'h-2.5 w-2.5 lg:h-3 lg:w-3 fullhd:h-3.5 fullhd:w-3.5'
+  const lineH = compact ? 'h-4 fullhd:h-5' : 'h-5 lg:h-6 fullhd:h-7'
+  const gap = compact ? 'gap-1 fullhd:gap-1.5' : 'gap-1.5 lg:gap-2 fullhd:gap-2.5'
 
   return (
     <div className={`flex items-start ${gap}`}>
@@ -105,7 +105,7 @@ function StopTimeline({
         {/* Transbordo indicator */}
         <div className={`flex items-center gap-1.5 ${lineH}`}>
           <span className="text-amber-500 dark:text-amber-400">⇄</span>
-          <span className="text-[10px] font-medium text-amber-600 dark:text-amber-400">
+          <span className="text-[10px] lg:text-[11px] fullhd:text-xs 2k:text-sm font-medium text-amber-600 dark:text-amber-400">
             Transbordo · {opt.waitMins} min
           </span>
         </div>
@@ -157,13 +157,13 @@ export default function DashboardConnectionCard({
         <div className="mb-2.5 flex items-center justify-between gap-2">
           <div className="flex items-center gap-1.5 min-w-0">
             <span className="text-lg leading-none lg:text-xl">⟳</span>
-            <span className="truncate text-sm font-semibold text-slate-900 dark:text-slate-100 lg:text-base">
+            <span className="truncate text-sm font-semibold text-slate-900 dark:text-slate-100 lg:text-base fullhd:text-lg 2k:text-xl">
               {conn.name}
             </span>
           </div>
           {!loading && hasData && best && (
             <div className="flex shrink-0 items-center gap-2">
-              <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-bold ${
+              <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] lg:text-[11px] fullhd:text-xs 2k:text-sm font-bold ${
                 best.waitMins <= 5
                   ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-400'
                   : best.waitMins <= 10
@@ -172,7 +172,7 @@ export default function DashboardConnectionCard({
               }`}>
                 {best.waitMins} min espera
               </span>
-              <span className="text-[10px] font-medium text-slate-400 dark:text-slate-500">
+              <span className="text-[10px] lg:text-[11px] fullhd:text-xs 2k:text-sm font-medium text-slate-400 dark:text-slate-500">
                 {best.totalMins} min total
               </span>
             </div>
@@ -203,7 +203,7 @@ export default function DashboardConnectionCard({
 
             {/* Wait progress bar */}
             <div className="mt-2.5 flex items-center gap-1.5">
-              <span className="text-[9px] text-slate-400">Espera</span>
+              <span className="text-[9px] lg:text-[10px] fullhd:text-[11px] 2k:text-xs text-slate-400">Espera</span>
               <div className="h-1 flex-1 overflow-hidden rounded-full bg-slate-200 dark:bg-slate-700">
                 <div
                   className="h-full rounded-full transition-all"
@@ -218,7 +218,7 @@ export default function DashboardConnectionCard({
             {/* Expand hint */}
             {results.length > 1 && (
               <div className="mt-2 flex items-center justify-between">
-                <p className="text-[10px] text-slate-400">
+                <p className="text-[10px] lg:text-[11px] fullhd:text-xs 2k:text-sm text-slate-400">
                   +{results.length - 1} opción{results.length - 1 !== 1 ? 'es' : ''} más
                 </p>
                 <svg
@@ -241,7 +241,7 @@ export default function DashboardConnectionCard({
       {/* Expanded: all options */}
       {expanded && !loading && results.length > 0 && (
         <div className="space-y-2 border-t border-slate-200/60 px-3.5 pb-3.5 pt-2 dark:border-slate-700/40 lg:px-4 lg:pb-4 lg:pt-3">
-          <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">
+          <p className="text-[10px] lg:text-[11px] fullhd:text-xs 2k:text-sm font-semibold uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">
             Todas las opciones
           </p>
           {results.map((opt, i) => (
@@ -250,7 +250,7 @@ export default function DashboardConnectionCard({
           {/* Map button */}
           <button
             onClick={(e) => { e.stopPropagation(); onClick() }}
-            className="mt-1 flex w-full items-center justify-center gap-1.5 rounded-xl border border-slate-200 bg-white/60 px-3 py-2 text-[11px] font-medium text-slate-600 transition-colors hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-800/40 dark:text-slate-400 dark:hover:bg-slate-700/60"
+            className="mt-1 flex w-full items-center justify-center gap-1.5 rounded-xl border border-slate-200 bg-white/60 px-3 py-2 text-[11px] lg:text-xs fullhd:text-sm 2k:text-base font-medium text-slate-600 transition-colors hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-800/40 dark:text-slate-400 dark:hover:bg-slate-700/60"
           >
             <svg viewBox="0 0 24 24" fill="currentColor" className="h-3.5 w-3.5">
               <path d="M3 5h2V3H3v2zm0 8h2v-2H3v2zm4 8h2v-2H7v2zM3 9h2V7H3v2zm10-6h-2v2h2V3zm6 0v2h2V3h-2zM5 21v-2H3v2h2zm-2-4h2v-2H3v2zM9 3H7v2h2V3zm2 18h2v-2h-2v2zm8-8h2v-2h-2v2zm0 8v-2h-2v2h2zm0-12h2V7h-2v2zm0 8h2v-2h-2v2zm-4 4h2v-2h-2v2zm0-16h2V3h-2v2z" />

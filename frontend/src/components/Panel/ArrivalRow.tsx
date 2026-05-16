@@ -58,7 +58,7 @@ export default function ArrivalRow({
     <div
       role="button"
       tabIndex={0}
-      className="group flex w-full cursor-pointer items-center gap-3 border-b border-slate-200/70 px-4 py-3 text-left transition-colors hover:bg-slate-50/90 dark:border-slate-700/70 dark:hover:bg-slate-800/90"
+      className="group flex w-full cursor-pointer items-center gap-3 border-b border-slate-200/70 px-4 py-3 text-left transition-colors hover:bg-slate-50/90 dark:border-slate-700/70 dark:hover:bg-slate-800/90 fullhd:gap-4 fullhd:px-5 fullhd:py-4"
       onClick={onRowClick}
       onKeyDown={(e) => {
         if (e.key === "Enter" || e.key === " ") {
@@ -76,27 +76,27 @@ export default function ArrivalRow({
         label={isLineFavorited ? "Quitar de líneas guardadas" : "Guardar línea"}
         className={isLineFavorited ? "text-amber-400" : "text-slate-500"}
       />
-      <span className="w-8 text-[1.7rem] font-semibold leading-none tracking-tight text-slate-900 dark:text-slate-100">
+      <span className="w-8 text-[1.7rem] lg:text-[1.9rem] fullhd:text-[2.1rem] 2k:text-[2.3rem] font-semibold leading-none tracking-tight text-slate-900 dark:text-slate-100 lg:w-10 fullhd:w-12">
         {arrival.routeCode}
       </span>
       <div className="min-w-0 flex-1">
-        <div className="truncate text-sm font-medium text-slate-900 dark:text-slate-100">
+        <div className="truncate text-sm fullhd:text-base 2k:text-lg font-medium text-slate-900 dark:text-slate-100">
           {arrival.routeName}
         </div>
         <div
-          className={`text-[0.60rem] font-semibold uppercase tracking-[0.16em] ${color}`}
+          className={`text-[0.60rem] font-semibold uppercase tracking-[0.16em] lg:text-[0.70rem] fullhd:text-xs 2k:text-sm ${color}`}
         >
           {arrival.statusLabel}
         </div>
       </div>
       <div className="min-w-[50px] flex-shrink-0 text-right">
         <span
-          className={`block text-[1.45rem] font-bold leading-none ${color}`}
+          className={`block text-[1.45rem] lg:text-[1.6rem] fullhd:text-[1.8rem] 2k:text-[2rem] font-bold leading-none ${color}`}
         >
           {display}
         </span>
-        {label && <span className="text-[0.7rem] text-slate-500 dark:text-slate-400">{label}</span>}
-        <span className={`mt-1 block text-[0.82rem] font-semibold ${color}`}>
+        {label && <span className="text-[0.7rem] lg:text-xs fullhd:text-sm 2k:text-sm text-slate-500 dark:text-slate-400">{label}</span>}
+        <span className={`mt-1 block text-[0.82rem] lg:text-sm fullhd:text-base 2k:text-base font-semibold ${color}`}>
           {hourStr}
         </span>
       </div>

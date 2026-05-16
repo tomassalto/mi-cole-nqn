@@ -225,10 +225,10 @@ export default function FavoritesDrawer() {
         onClick={handleClose}
       />
       <aside
-        className={`fixed bottom-0 left-0 top-0 z-[800] flex w-full flex-col overflow-hidden border-r border-white/70 bg-white/92 backdrop-blur-xl transition-transform duration-300 dark:border-slate-700/70 dark:bg-slate-900/95 md:w-[380px] md:max-w-[92vw] md:shadow-[18px_0_50px_rgba(15,23,42,0.16)] md:dark:shadow-[18px_0_50px_rgba(0,0,0,0.40)] lg:w-[600px] ${drawerOpen ? "translate-x-0" : "-translate-x-full"}`}
+        className={`fixed bottom-0 left-0 top-0 z-[800] flex w-full flex-col overflow-hidden border-r border-white/70 bg-white/92 backdrop-blur-xl transition-transform duration-300 dark:border-slate-700/70 dark:bg-slate-900/95 md:w-[380px] md:max-w-[92vw] md:shadow-[18px_0_50px_rgba(15,23,42,0.16)] md:dark:shadow-[18px_0_50px_rgba(0,0,0,0.40)] lg:w-[600px] fullhd:w-[700px] 2k:w-[800px] ${drawerOpen ? "translate-x-0" : "-translate-x-full"}`}
       >
         <div className="flex items-center justify-between border-b border-slate-200/80 px-4 py-3 dark:border-slate-700/80 lg:px-5 lg:py-4">
-          <h2 className="text-sm font-semibold text-slate-900 dark:text-slate-100 lg:text-base">
+          <h2 className="text-sm font-semibold text-slate-900 dark:text-slate-100 lg:text-base fullhd:text-lg 2k:text-xl">
             MiCole
           </h2>
           <IconButton
@@ -243,7 +243,7 @@ export default function FavoritesDrawer() {
         <div className="flex gap-1 border-b border-slate-200/80 px-4 py-2 dark:border-slate-700/80 lg:gap-2 lg:px-5 lg:py-3">
           <button
             onClick={() => setActiveTab("inicio")}
-            className={`flex-1 rounded-lg px-3 py-1.5 text-xs font-medium transition-all lg:px-4 lg:py-2 lg:text-sm ${
+            className={`flex-1 rounded-lg px-3 py-1.5 text-xs font-medium transition-all lg:px-4 lg:py-2 lg:text-lg fullhd:text-xl 2k:text-2xl ${
               activeTab === "inicio"
                 ? "bg-white text-slate-900 shadow-sm dark:bg-slate-700 dark:text-slate-100"
                 : "text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-300"
@@ -253,7 +253,7 @@ export default function FavoritesDrawer() {
           </button>
           <button
             onClick={() => setActiveTab("guardados")}
-            className={`flex-1 rounded-lg px-3 py-1.5 text-xs font-medium transition-all lg:px-4 lg:py-2 lg:text-sm ${
+            className={`flex-1 rounded-lg px-3 py-1.5 text-xs font-medium transition-all lg:px-4 lg:py-2 lg:text-lg fullhd:text-xl 2k:text-2xl ${
               activeTab === "guardados"
                 ? "bg-white text-slate-900 shadow-sm dark:bg-slate-700 dark:text-slate-100"
                 : "text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-300"
@@ -275,7 +275,7 @@ export default function FavoritesDrawer() {
           {/* Atajos */}
           {savedShortcuts.length > 0 && (
             <>
-              <div className="px-4 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400 lg:px-5 lg:text-sm">
+              <div className="px-4 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400 lg:px-5 lg:text-sm fullhd:text-base 2k:text-lg">
                 Mis atajos
               </div>
               {savedShortcuts.map((shortcut) => {
@@ -287,10 +287,10 @@ export default function FavoritesDrawer() {
                   >
                     <span className="text-emerald-500 text-lg">⚡</span>
                     <div className="min-w-0 flex-1">
-                      <span className="block truncate text-[0.92rem] font-medium text-slate-900 dark:text-slate-100 lg:text-base">
+                      <span className="block truncate text-[0.92rem] font-medium text-slate-900 dark:text-slate-100 lg:text-base fullhd:text-lg 2k:text-xl">
                         {shortcut.name}
                       </span>
-                      <span className="text-xs text-slate-500 dark:text-slate-400 lg:text-sm">
+                      <span className="text-xs text-slate-500 dark:text-slate-400 lg:text-sm fullhd:text-base">
                         {shortcut.line_route_code} ·{" "}
                         {shortcut.origin_stop_name ?? "Origen"} →{" "}
                         {shortcut.dest_stop_name ?? "Destino"}
@@ -329,7 +329,7 @@ export default function FavoritesDrawer() {
           {/* Líneas */}
           {lines.length > 0 && (
             <>
-              <div className="px-4 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">
+              <div className="px-4 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400 lg:text-sm fullhd:text-base 2k:text-lg">
                 Lineas guardadas
               </div>
               {lines.map((line) => (
@@ -341,7 +341,7 @@ export default function FavoritesDrawer() {
                   <span className="text-amber-400 text-lg">★</span>
                   <div className="flex min-w-0 flex-1 items-center gap-1.5">
                     <Badge routeCode={line.route_code ?? ""} size="sm" />
-                    <span className="truncate text-xs text-slate-500 dark:text-slate-400">
+                    <span className="truncate text-xs text-slate-500 dark:text-slate-400 lg:text-sm fullhd:text-base">
                       {line.route_name}
                     </span>
                   </div>
@@ -361,7 +361,7 @@ export default function FavoritesDrawer() {
           {/* Paradas */}
           {stops.length > 0 && (
             <>
-              <div className="px-4 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">
+              <div className="px-4 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400 lg:text-sm fullhd:text-base 2k:text-lg">
                 Paradas guardadas
               </div>
               {stops.map((fav) => (
@@ -371,7 +371,7 @@ export default function FavoritesDrawer() {
                   onClick={() => handleSelectStop(fav)}
                 >
                   <span className="text-amber-400 text-lg">★</span>
-                  <span className="min-w-0 flex-1 truncate text-[0.95rem] text-slate-900 dark:text-slate-100 lg:text-base">
+                  <span className="min-w-0 flex-1 truncate text-[0.95rem] text-slate-900 dark:text-slate-100 lg:text-base fullhd:text-lg 2k:text-xl">
                     {fav.name}
                   </span>
                   <IconButton
@@ -390,7 +390,7 @@ export default function FavoritesDrawer() {
           {/* Conexiones */}
           {savedConnections.length > 0 && (
             <>
-              <div className="px-4 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">
+              <div className="px-4 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400 lg:text-sm fullhd:text-base 2k:text-lg">
                 Mis conexiones
               </div>
               {savedConnections.map((conn) => (
@@ -401,7 +401,7 @@ export default function FavoritesDrawer() {
                 >
                   {/* Header: nombre + acciones */}
                   <div className="mb-2 flex items-center justify-between">
-                    <span className="truncate text-[0.95rem] font-semibold text-slate-900 dark:text-slate-100 lg:text-base">
+                    <span className="truncate text-[0.95rem] font-semibold text-slate-900 dark:text-slate-100 lg:text-base fullhd:text-lg 2k:text-xl">
                       {conn.name}
                     </span>
                     <div className="flex shrink-0 gap-0.5">
@@ -413,9 +413,7 @@ export default function FavoritesDrawer() {
                         label="Editar conexión"
                       />
                       <IconButton
-                        icon={
-                          <span className="text-sm opacity-60">✕</span>
-                        }
+                        icon={<span className="text-sm opacity-60">✕</span>}
                         onClick={(e: MouseEvent) =>
                           handleDeleteConnection(e, conn.id)
                         }
@@ -433,7 +431,7 @@ export default function FavoritesDrawer() {
                           size="sm"
                         />
                       </div>
-                      <div className="space-y-0.5 text-xs text-slate-600 dark:text-slate-400">
+                      <div className="space-y-0.5 text-xs text-slate-600 dark:text-slate-400 fullhd:text-sm">
                         <div className="flex items-start gap-1">
                           <span className="mt-px text-emerald-500">▲</span>
                           <span className="truncate">
@@ -462,7 +460,7 @@ export default function FavoritesDrawer() {
                           size="sm"
                         />
                       </div>
-                      <div className="space-y-0.5 text-xs text-slate-600 dark:text-slate-400">
+                      <div className="space-y-0.5 text-xs text-slate-600 dark:text-slate-400 fullhd:text-sm">
                         <div className="flex items-start gap-1">
                           <span className="mt-px text-emerald-500">▲</span>
                           <span className="truncate">
@@ -487,7 +485,7 @@ export default function FavoritesDrawer() {
             lines.length === 0 &&
             savedConnections.length === 0 &&
             savedShortcuts.length === 0 && (
-              <p className="px-4 py-6 text-center text-sm text-slate-500 dark:text-slate-400 lg:px-5 lg:text-base">
+              <p className="px-4 py-6 text-center text-sm text-slate-500 dark:text-slate-400 lg:px-5 lg:text-base fullhd:text-lg">
                 Guardá paradas, lineas, atajos o conexiones
               </p>
             )}
@@ -499,7 +497,7 @@ export default function FavoritesDrawer() {
               closeDrawer();
               startShortcutCreation();
             }}
-            className="w-full rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-800 transition-colors hover:bg-emerald-100 dark:border-emerald-700/50 dark:bg-emerald-900/20 dark:text-emerald-400 dark:hover:bg-emerald-900/40 lg:py-3.5 lg:text-base"
+            className="w-full rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 lg:text-lg fullhd:text-xl 2k:text-2xl font-medium text-emerald-800 transition-colors hover:bg-emerald-100 dark:border-emerald-700/50 dark:bg-emerald-900/20 dark:text-emerald-400 dark:hover:bg-emerald-900/40 lg:py-3.5 fullhd:py-4"
           >
             + Crear atajo
           </button>
@@ -510,7 +508,7 @@ export default function FavoritesDrawer() {
               closeDrawer();
               startConnectionCreation();
             }}
-            className="w-full rounded-xl bg-slate-900 px-4 py-3 text-sm font-medium text-white transition-colors hover:bg-slate-800 dark:bg-slate-700 dark:hover:bg-slate-600 lg:py-3.5 lg:text-base"
+            className="w-full rounded-xl bg-slate-900 px-4 py-3 lg:text-lg fullhd:text-xl 2k:text-2xl font-medium text-white transition-colors hover:bg-slate-800 dark:bg-slate-700 dark:hover:bg-slate-600 lg:py-3.5 fullhd:py-4"
           >
             + Nueva conexión
           </button>

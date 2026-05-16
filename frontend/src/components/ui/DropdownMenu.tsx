@@ -52,8 +52,9 @@ export default function DropdownMenu({ items, open, onClose }: DropdownMenuProps
         <button
           key={item.label}
           role="menuitem"
-          className="flex w-full items-center gap-2.5 px-3.5 py-2.5 text-left text-[0.82rem] font-medium text-slate-700 transition-colors hover:bg-slate-100/80 dark:text-slate-200 dark:hover:bg-slate-700/60"
-          onClick={() => {
+          className="flex w-full items-center gap-2.5 px-3.5 py-2.5 text-left text-[0.82rem] lg:text-sm fullhd:text-base font-medium text-slate-700 transition-colors hover:bg-slate-100/80 dark:text-slate-200 dark:hover:bg-slate-700/60"
+          onClick={(e) => {
+            e.stopPropagation();
             item.onClick();
             onClose();
           }}

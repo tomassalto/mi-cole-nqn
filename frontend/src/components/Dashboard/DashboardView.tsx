@@ -65,10 +65,10 @@ export default function DashboardView() {
     return (
       <div className="flex flex-1 flex-col items-center justify-center px-6 py-12 text-center">
         <div className="mb-4 text-4xl">🏠</div>
-        <h3 className="mb-1 text-sm font-semibold text-slate-900 dark:text-slate-100">
+        <h3 className="mb-1 text-sm font-semibold text-slate-900 dark:text-slate-100 lg:text-base fullhd:text-lg 2k:text-xl">
           Todo listo para arrancar
         </h3>
-        <p className="mb-6 text-xs text-slate-500 dark:text-slate-400">
+        <p className="mb-6 text-xs text-slate-500 dark:text-slate-400 lg:text-sm fullhd:text-base 2k:text-lg">
           Guardá conexiones o atajos y aparecerán acá con sus horarios en vivo.
         </p>
         <div className="flex flex-col gap-2 w-full max-w-[220px]">
@@ -77,7 +77,7 @@ export default function DashboardView() {
               closeDrawer();
               startShortcutCreation();
             }}
-            className="w-full rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-2.5 text-sm font-medium text-emerald-800 transition-colors hover:bg-emerald-100 dark:border-emerald-700/50 dark:bg-emerald-900/20 dark:text-emerald-400 dark:hover:bg-emerald-900/40"
+            className="w-full rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-2.5 text-sm font-medium text-emerald-800 transition-colors hover:bg-emerald-100 dark:border-emerald-700/50 dark:bg-emerald-900/20 dark:text-emerald-400 dark:hover:bg-emerald-900/40 lg:text-base fullhd:text-lg"
           >
             + Crear atajo
           </button>
@@ -86,7 +86,7 @@ export default function DashboardView() {
               closeDrawer();
               startConnectionCreation();
             }}
-            className="w-full rounded-xl bg-slate-900 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-slate-800 dark:bg-slate-700 dark:hover:bg-slate-600"
+            className="w-full rounded-xl bg-slate-900 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-slate-800 dark:bg-slate-700 dark:hover:bg-slate-600 lg:text-base fullhd:text-lg"
           >
             + Nueva conexión
           </button>
@@ -105,7 +105,7 @@ export default function DashboardView() {
         <button
           onClick={refresh}
           disabled={refreshing}
-          className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white/80 px-3 py-1.5 text-xs font-medium text-slate-600 shadow-sm transition-colors hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800/60 dark:text-slate-400 dark:hover:bg-slate-700/80"
+          className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white/80 px-3 py-1.5 text-xs lg:text-sm fullhd:text-base font-medium text-slate-600 shadow-sm transition-colors hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800/60 dark:text-slate-400 dark:hover:bg-slate-700/80"
         >
           <svg
             className={`h-3.5 w-3.5 ${refreshing ? "animate-spin" : ""}`}
@@ -145,7 +145,7 @@ export default function DashboardView() {
       {/* ── Connections section ─────────────────────────────────------- */}
       {hasConnections && (
         <section>
-          <h3 className="mb-2 px-1 text-xs font-semibold uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400 lg:mb-3 lg:text-sm">
+          <h3 className="mb-2 px-1 text-xs font-semibold uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400 lg:mb-3 lg:text-sm fullhd:text-base 2k:text-lg">
             Conexiones
           </h3>
           <div className="space-y-2">
@@ -165,7 +165,7 @@ export default function DashboardView() {
       {/* ── Shortcuts section ────────────────────────────────────────── */}
       {hasShortcuts && (
         <section>
-          <h3 className="mb-2 px-1 text-xs font-semibold uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400 lg:mb-3 lg:text-sm">
+          <h3 className="mb-2 px-1 text-xs font-semibold uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400 lg:mb-3 lg:text-sm fullhd:text-base 2k:text-lg">
             Atajos
           </h3>
           <div className="space-y-2 lg:grid lg:grid-cols-2 lg:gap-3 lg:space-y-0">

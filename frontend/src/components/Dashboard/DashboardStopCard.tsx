@@ -24,7 +24,7 @@ export default function DashboardStopCard({
       {/* Header */}
       <div className="mb-2 flex items-center gap-1.5">
         <span className="text-lg leading-none lg:text-xl">★</span>
-        <span className="truncate text-sm font-semibold text-slate-900 dark:text-slate-100 lg:text-base">
+        <span className="truncate text-sm font-semibold text-slate-900 dark:text-slate-100 lg:text-base fullhd:text-lg 2k:text-xl">
           {stop.name}
         </span>
       </div>
@@ -47,7 +47,7 @@ export default function DashboardStopCard({
 
       {/* No arrivals */}
       {!loading && topArrivals.length === 0 && (
-        <p className="text-xs text-slate-500 dark:text-slate-400">
+        <p className="text-xs fullhd:text-sm 2k:text-base text-slate-500 dark:text-slate-400">
           Sin servicios próximos
         </p>
       )}
@@ -58,7 +58,7 @@ export default function DashboardStopCard({
           {topArrivals.map((arrival, i) => (
             <div
               key={`${arrival.serviceId}-${arrival.tripId ?? arrival.scheduledTs}-${i}`}
-              className="flex items-center gap-2 text-xs lg:text-sm"
+              className="flex items-center gap-2 text-xs lg:text-sm fullhd:text-base 2k:text-lg"
             >
               <span
                 className={`h-1.5 w-1.5 shrink-0 rounded-full ${statusDot(arrival.status)} lg:h-2 lg:w-2`}
