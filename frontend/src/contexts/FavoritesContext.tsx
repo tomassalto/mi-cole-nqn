@@ -8,6 +8,7 @@ import {
 } from 'react'
 import type { Favorite, Stop } from '@/types/api'
 import { getFavorites, addFavorite, removeFavorite, addLineFavorite, removeLineFavorite } from '@/services/favorites'
+import { useAuth } from './AuthContext'
 
 interface FavoritesContextValue {
   stops: Favorite[]
@@ -24,10 +25,16 @@ interface FavoritesContextValue {
 const FavoritesContext = createContext<FavoritesContextValue | null>(null)
 
 export function FavoritesProvider({ children }: { children: ReactNode }) {
+  const { user, requireAuth } = useAuth()
   const [favorites, setFavorites] = useState<Favorite[]>([])
   const [loading, setLoading] = useState(true)
 
   const load = useCallback(async () => {
+    if (!user) {
+      setFavorites([])
+      setLoading(false)
+      return
+    }
     try {
       const data = await getFavorites()
       setFavorites(data)
@@ -36,29 +43,33 @@ export function FavoritesProvider({ children }: { children: ReactNode }) {
     } finally {
       setLoading(false)
     }
-  }, [])
+  }, [user])
 
   useEffect(() => { load() }, [load])
 
   const addStop = useCallback(async (stop: Stop) => {
+    if (!requireAuth(() => addStop(stop))) return
     await addFavorite(stop.id, stop.name, stop.lat, stop.lon)
     await load()
-  }, [load])
+  }, [load, requireAuth])
 
   const removeStop = useCallback(async (id: number) => {
+    if (!requireAuth(() => removeStop(id))) return
     await removeFavorite(id)
     await load()
-  }, [load])
+  }, [load, requireAuth])
 
   const addLine = useCallback(async (serviceId: number, routeCode: string, routeName: string) => {
+    if (!requireAuth(() => addLine(serviceId, routeCode, routeName))) return
     await addLineFavorite(serviceId, routeCode, routeName)
     await load()
-  }, [load])
+  }, [load, requireAuth])
 
   const removeLine = useCallback(async (serviceId: number) => {
+    if (!requireAuth(() => removeLine(serviceId))) return
     await removeLineFavorite(serviceId)
     await load()
-  }, [load])
+  }, [load, requireAuth])
 
   const stops = favorites.filter(f => f.type === 'stop')
   const lines = favorites.filter(f => f.type === 'line')
@@ -68,7 +79,7 @@ export function FavoritesProvider({ children }: { children: ReactNode }) {
       stops,
       lines,
       loading,
-      isStopFavorited: (id: number) => stops.some(f => Number(f.id) === id),
+      isStopFavorited: (id: number) => stops.some(f => Number(f.id?.split('_').pop()) === id),
       isLineFavorited: (serviceId: number) => lines.some(f => Number(f.service_id) === serviceId),
       addStop,
       removeStop,

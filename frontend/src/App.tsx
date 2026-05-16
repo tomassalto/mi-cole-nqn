@@ -7,6 +7,7 @@ import EtaDialog from '@/components/Dialogs/EtaDialog'
 import ConnectionDialog from '@/components/Dialogs/ConnectionDialog'
 import ShortcutDialog from '@/components/Dialogs/ShortcutDialog'
 import ConsultationOverlay from '@/components/Dialogs/ConsultationOverlay'
+import LoginModal from '@/components/Auth/LoginModal'
 
 export default function App() {
   return (
@@ -20,6 +21,7 @@ export default function App() {
       <ConnectionDialog />
       <ShortcutDialog />
       <ConsultationOverlay />
+      <LoginModal />
     </div>
   )
 }

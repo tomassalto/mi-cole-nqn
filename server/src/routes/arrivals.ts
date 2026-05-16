@@ -10,7 +10,7 @@ router.post('/:stopId', async (req, res) => {
   if (isNaN(stopId)) return res.status(400).json({ error: 'stopId inválido' })
 
   const firstTime = req.body.first_time ?? Date.now()
-  const cacheKey = `${stopId}_${firstTime}`
+  const cacheKey = `arrivals_${stopId}`
   const cached = cache.get(cacheKey)
   if (cached) return res.json(cached)
 
@@ -19,6 +19,7 @@ router.post('/:stopId', async (req, res) => {
       stop_id: stopId,
       first_time: firstTime
     })
+    cache.set(cacheKey, data)
     cache.set(cacheKey, data)
     res.json(data)
   } catch (err) {

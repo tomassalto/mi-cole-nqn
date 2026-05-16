@@ -1,6 +1,7 @@
 import { Router } from 'express'
 import webpush from 'web-push'
 import { db } from '../db'
+import { requireAuth } from '../middleware/auth'
 
 const router = Router()
 
@@ -24,7 +25,7 @@ router.get('/vapid-public-key', (_req, res) => {
   res.json({ publicKey: VAPID_PUBLIC_KEY })
 })
 
-router.post('/subscribe', async (req, res) => {
+router.post('/subscribe', requireAuth, async (req, res) => {
   const { shortcutId, endpoint, p256dh, auth, minutesThreshold } = req.body as {
     shortcutId: string
     endpoint: string
@@ -44,28 +45,28 @@ router.post('/subscribe', async (req, res) => {
   }
 
   await db.execute({
-    sql: `INSERT INTO push_subscriptions (shortcut_id, endpoint, p256dh, auth, minutes_threshold)
-          VALUES (?, ?, ?, ?, ?)
+    sql: `INSERT INTO push_subscriptions (shortcut_id, endpoint, p256dh, auth, minutes_threshold, user_id)
+          VALUES (?, ?, ?, ?, ?, ?)
           ON CONFLICT(shortcut_id, endpoint) DO UPDATE SET minutes_threshold = excluded.minutes_threshold`,
-    args: [shortcutId, endpoint, p256dh, auth, minutesThreshold ?? 5],
+    args: [shortcutId, endpoint, p256dh, auth, minutesThreshold ?? 5, req.userId!],
   })
 
   res.json({ ok: true })
 })
 
-router.delete('/subscribe/:shortcutId', async (req, res) => {
-  const { shortcutId } = req.params
+router.delete('/subscribe/:shortcutId', requireAuth, async (req, res) => {
+  const shortcutId = req.params.shortcutId as string
   const { endpoint } = req.body as { endpoint?: string }
 
   if (endpoint) {
     await db.execute({
-      sql: 'DELETE FROM push_subscriptions WHERE shortcut_id = ? AND endpoint = ?',
-      args: [shortcutId, endpoint],
+      sql: 'DELETE FROM push_subscriptions WHERE shortcut_id = ? AND endpoint = ? AND user_id = ?',
+      args: [shortcutId, endpoint, req.userId!],
     })
   } else {
     await db.execute({
-      sql: 'DELETE FROM push_subscriptions WHERE shortcut_id = ?',
-      args: [shortcutId],
+      sql: 'DELETE FROM push_subscriptions WHERE shortcut_id = ? AND user_id = ?',
+      args: [shortcutId, req.userId!],
     })
   }
 

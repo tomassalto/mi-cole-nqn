@@ -2,6 +2,7 @@ import { createContext, useContext, useState, useCallback, useEffect, type React
 import type { SavedConnection, SavedShortcut } from '@/types/api'
 import { getSavedConnections } from '@/services/savedConnections'
 import { getSavedShortcuts } from '@/services/savedShortcuts'
+import { useAuth } from './AuthContext'
 
 interface AppContextValue {
   drawerOpen: boolean
@@ -21,6 +22,7 @@ interface AppContextValue {
 const AppContext = createContext<AppContextValue | null>(null)
 
 export function AppProvider({ children }: { children: ReactNode }) {
+  const { user } = useAuth()
   const [drawerOpen, setDrawerOpen] = useState(false)
   const [consultationOpen, setConsultationOpen] = useState(false)
   const [savedConnections, setSavedConnections] = useState<SavedConnection[]>([])
@@ -44,22 +46,24 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const closeConsultation = useCallback(() => setConsultationOpen(false), [])
 
   const refreshSavedConnections = useCallback(async () => {
+    if (!user) { setSavedConnections([]); return }
     try {
       const conns = await getSavedConnections()
       setSavedConnections(conns)
-    } catch (e) {
+    } catch {
       // connection loading error handled silently
     }
-  }, [])
+  }, [user])
 
   const refreshSavedShortcuts = useCallback(async () => {
+    if (!user) { setSavedShortcuts([]); return }
     try {
       const shortcuts = await getSavedShortcuts()
       setSavedShortcuts(shortcuts)
-    } catch (e) {
+    } catch {
       // shortcut loading error handled silently
     }
-  }, [])
+  }, [user])
 
   useEffect(() => {
     refreshSavedConnections()

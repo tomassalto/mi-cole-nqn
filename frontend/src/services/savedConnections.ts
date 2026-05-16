@@ -1,8 +1,12 @@
 import type { SavedConnection } from '@/types/api'
+import { authHeaders } from './api'
 
 export async function getSavedConnections(): Promise<SavedConnection[]> {
-  const res = await fetch('/api/saved-connections')
-  if (!res.ok) throw new Error(`HTTP ${res.status}`)
+  const res = await fetch('/api/saved-connections', { headers: authHeaders() })
+  if (!res.ok) {
+    if (res.status === 401) return []
+    throw new Error(`HTTP ${res.status}`)
+  }
   return res.json()
 }
 
@@ -23,7 +27,7 @@ export async function saveConnection(
 ): Promise<{ ok: boolean; id?: string }> {
   const res = await fetch('/api/saved-connections', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json', ...authHeaders() },
     body: JSON.stringify({
       name,
       originStopId,
@@ -45,14 +49,17 @@ export async function saveConnection(
 }
 
 export async function deleteSavedConnection(id: string): Promise<void> {
-  const res = await fetch(`/api/saved-connections/${encodeURIComponent(id)}`, { method: 'DELETE' })
+  const res = await fetch(`/api/saved-connections/${encodeURIComponent(id)}`, {
+    method: 'DELETE',
+    headers: authHeaders(),
+  })
   if (!res.ok) throw new Error(`HTTP ${res.status}`)
 }
 
 export async function toggleConnectionNotifications(id: string, enabled: boolean): Promise<void> {
   const res = await fetch(`/api/saved-connections/${encodeURIComponent(id)}/notifications`, {
     method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json', ...authHeaders() },
     body: JSON.stringify({ enabled }),
   })
   if (!res.ok) throw new Error(`HTTP ${res.status}`)

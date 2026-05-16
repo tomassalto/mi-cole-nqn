@@ -1,15 +1,19 @@
 import { Router } from 'express'
 import { randomUUID } from 'crypto'
 import { db } from '../db'
+import { requireAuth } from '../middleware/auth'
 
 const router = Router()
 
-router.get('/', async (_req, res) => {
-  const result = await db.execute('SELECT * FROM saved_connections ORDER BY created_at DESC')
+router.get('/', requireAuth, async (req, res) => {
+  const result = await db.execute({
+    sql: 'SELECT * FROM saved_connections WHERE user_id = ? ORDER BY created_at DESC',
+    args: [req.userId!],
+  })
   res.json(result.rows)
 })
 
-router.post('/', async (req, res) => {
+router.post('/', requireAuth, async (req, res) => {
   const {
     name,
     originStopId,
@@ -40,8 +44,8 @@ router.post('/', async (req, res) => {
             dest_stop_id, dest_stop_name,
             line_a_service_id, line_a_route_code,
             line_b_service_id, line_b_route_code,
-            notifications, created_at
-          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, datetime('now'))`,
+            notifications, user_id, created_at
+          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?, datetime('now'))`,
     args: [
       id, name as string,
       originStopId as number, (originStopName as string) || null,
@@ -50,22 +54,28 @@ router.post('/', async (req, res) => {
       destStopId as number, (destStopName as string) || null,
       lineAServiceId as number, (lineARouteCode as string) || null,
       lineBServiceId as number, (lineBRouteCode as string) || null,
+      req.userId!,
     ],
   })
 
   res.json({ ok: true, id })
 })
 
-router.delete('/:id', async (req, res) => {
-  await db.execute({ sql: 'DELETE FROM saved_connections WHERE id = ?', args: [req.params.id] })
+router.delete('/:id', requireAuth, async (req, res) => {
+  const { id } = req.params
+  await db.execute({
+    sql: 'DELETE FROM saved_connections WHERE id = ? AND user_id = ?',
+    args: [id as string, req.userId!],
+  })
   res.json({ ok: true })
 })
 
-router.put('/:id/notifications', async (req, res) => {
+router.put('/:id/notifications', requireAuth, async (req, res) => {
+  const { id } = req.params
   const { enabled } = req.body as { enabled?: boolean }
   await db.execute({
-    sql: 'UPDATE saved_connections SET notifications = ? WHERE id = ?',
-    args: [enabled ? 1 : 0, req.params.id],
+    sql: 'UPDATE saved_connections SET notifications = ? WHERE id = ? AND user_id = ?',
+    args: [enabled ? 1 : 0, id as string, req.userId!],
   })
   res.json({ ok: true })
 })

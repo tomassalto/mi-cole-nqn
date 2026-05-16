@@ -66,6 +66,13 @@ export async function initDb(): Promise<void> {
       created_at        TEXT DEFAULT (datetime('now')),
       UNIQUE(shortcut_id, endpoint)
     );
+
+    CREATE TABLE IF NOT EXISTS users (
+      id         TEXT PRIMARY KEY,
+      username   TEXT NOT NULL UNIQUE COLLATE NOCASE,
+      password   TEXT NOT NULL,
+      created_at TEXT DEFAULT (datetime('now'))
+    );
   `)
 
   // Column migrations — run each ALTER inside try/catch in case it already exists
@@ -80,6 +87,10 @@ export async function initDb(): Promise<void> {
     `ALTER TABLE saved_shortcuts ADD COLUMN origin_stop_name TEXT`,
     `ALTER TABLE saved_shortcuts ADD COLUMN dest_stop_id INTEGER NOT NULL DEFAULT 0`,
     `ALTER TABLE saved_shortcuts ADD COLUMN dest_stop_name TEXT`,
+    `ALTER TABLE favorites ADD COLUMN user_id TEXT`,
+    `ALTER TABLE saved_connections ADD COLUMN user_id TEXT`,
+    `ALTER TABLE saved_shortcuts ADD COLUMN user_id TEXT`,
+    `ALTER TABLE push_subscriptions ADD COLUMN user_id TEXT`,
   ]
 
   for (const sql of migrations) {

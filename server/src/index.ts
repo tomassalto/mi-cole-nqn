@@ -15,11 +15,12 @@ import savedShortcutsRouter from './routes/savedShortcuts'
 import etaRouter from './routes/eta'
 import vehiclesRouter from './routes/vehicles'
 import pushRouter from './routes/push'
+import authRouter from './routes/auth'
 import { subscribeVehicles } from './lib/visionblo'
 import { startNotifier } from './lib/notifier'
 import { initDb } from './db'
 
-dotenv.config()
+dotenv.config({ path: path.resolve(__dirname, '../../.env') })
 
 const app = express()
 const PORT = process.env.PORT ?? 3001
@@ -27,6 +28,7 @@ const PORT = process.env.PORT ?? 3001
 app.use(cors())
 app.use(express.json())
 
+app.use('/api/auth', authRouter)
 app.use('/api/stops', stopsRouter)
 app.use('/api/arrivals', arrivalsRouter)
 app.use('/api/routes', routesRouter)

@@ -1,3 +1,5 @@
+import { authHeaders } from './api'
+
 function urlBase64ToUint8Array(base64String: string): Uint8Array {
   const padding = '='.repeat((4 - (base64String.length % 4)) % 4)
   const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/')
@@ -33,7 +35,7 @@ export async function subscribePush(shortcutId: string, minutesThreshold: number
   const json = sub.toJSON()
   const res = await fetch('/api/push/subscribe', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json', ...authHeaders() },
     body: JSON.stringify({
       shortcutId,
       endpoint: json.endpoint,
@@ -54,7 +56,7 @@ export async function unsubscribePush(shortcutId: string): Promise<void> {
   if (sub) {
     await fetch(`/api/push/subscribe/${encodeURIComponent(shortcutId)}`, {
       method: 'DELETE',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
       body: JSON.stringify({ endpoint: sub.endpoint }),
     })
   }

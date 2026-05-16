@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useMap as useMapCtx } from '@/contexts/MapContext'
 import { useApp } from '@/contexts/AppContext'
+import { useAuth } from '@/contexts/AuthContext'
 import Modal from '@/components/ui/Modal'
 import { saveShortcut } from '@/services/savedShortcuts'
 import { getShortcutLineCandidates } from '@/services/shortcuts'
@@ -17,6 +18,7 @@ export default function ShortcutDialog() {
     showRoute,
   } = useMapCtx()
   const { refreshSavedShortcuts } = useApp()
+  const { requireAuth } = useAuth()
   const [saveName, setSaveName] = useState('')
   const [saving, setSaving] = useState(false)
   const [lineCandidates, setLineCandidates] = useState<Array<{ serviceId: number; routeCode: string; routeName: string }>>([])
@@ -77,6 +79,7 @@ export default function ShortcutDialog() {
 
   const handleSave = async () => {
     if (!saveName.trim() || !shortcutCreationData.lineServiceId || !shortcutCreationData.originStop || !shortcutCreationData.destStop) return
+    if (!requireAuth(() => handleSave())) return
     setSaving(true)
     try {
       await saveShortcut(
